@@ -14,8 +14,9 @@
   /** @typedef {{type: "list", listType: "UL" | "OL", items: string[]}} ListBlock */
   /** @typedef {{type: "quote", html: string, subline1: string}} QuoteBlock */
   /** @typedef {{type: "code", text: string, lang: string, lineWrapping: boolean}} CodeBlock */
+  /** @typedef {{type: "table", headers: string[], rows: string[][], align: Array<string|null>, raw: string}} TableBlock */
   /** @typedef {{type: "delimiter"}} DelimiterBlock */
-  /** @typedef {HeaderBlock | TextBlock | ListBlock | QuoteBlock | CodeBlock | DelimiterBlock} Block */
+  /** @typedef {HeaderBlock | TextBlock | ListBlock | QuoteBlock | CodeBlock | TableBlock | DelimiterBlock} Block */
 
   var LANG_ALIASES = {
     js: "javascript",
@@ -245,6 +246,27 @@
     return items;
   }
 
+  function cellToHtml(cell) {
+    if (cell && cell.tokens && cell.tokens.length) return renderInline(cell.tokens).trim();
+    return escapeHtml(cell && cell.text != null ? cell.text : "").trim();
+  }
+
+  function tableToBlock(token) {
+    var headers = (token.header || []).map(cellToHtml);
+    var rows = (token.rows || []).map(function (row) {
+      return (row || []).map(cellToHtml);
+    });
+    var align = (token.align || headers.map(function () { return null; })).slice();
+
+    return {
+      type: "table",
+      headers: headers,
+      rows: rows,
+      align: align,
+      raw: String(token.raw || "").replace(/\n+$/, "")
+    };
+  }
+
   function quoteToHtml(token) {
     var parts = [];
 
@@ -323,12 +345,10 @@
         }
 
         case "table": {
-          // vc.ru знает code-блок. Таблицу отдаём моноширинно как есть:
-          // это честнее, чем разваливать её на отдельные абзацы.
-          var table = String(token.raw || "").replace(/\n+$/, "");
-          if (table.trim()) {
-            blocks.push({ type: "code", text: table, lang: "", lineWrapping: false });
-          }
+          // Храним таблицу отдельно: vc.ru получает прежний code-блок,
+          // а Дзен и Смартлаб могут развернуть её по своим правилам.
+          var table = tableToBlock(token);
+          if (table.raw.trim()) blocks.push(table);
           break;
         }
 
@@ -351,6 +371,7 @@
     if (block.type === "header") return block.text;
     if (block.type === "delimiter") return "***";
     if (block.type === "code") return block.text;
+    if (block.type === "table") return block.raw;
     if (block.type === "text") return htmlToText(block.html).trim();
     if (block.type === "quote") {
       return htmlToText(block.html)
@@ -386,6 +407,9 @@
     }
     if (block.type === "code") {
       return "[code:" + JSON.stringify({ text: block.text, lang: block.lang || "", lineWrapping: false }) + "]";
+    }
+    if (block.type === "table") {
+      return "[code:" + JSON.stringify({ text: block.raw, lang: "", lineWrapping: false }) + "]";
     }
     if (block.type === "delimiter") {
       return "[delimiter:" + JSON.stringify({ type: "default" }) + "]";

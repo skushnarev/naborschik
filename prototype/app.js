@@ -199,8 +199,8 @@
       input: "Текст\n\n| Колонка | Значение |\n|---|---|\n| A | 1 |",
       expect: "code-блок с Markdown-таблицей и lang пустой",
       check: function (blocks, payload) {
-        return blocks.length === 2 && blocks[1].type === "code" && blocks[1].lang === "" &&
-          blocks[1].text.indexOf("|---|---|") !== -1 && payload.indexOf("[code:") !== -1;
+        return blocks.length === 2 && blocks[1].type === "table" &&
+          blocks[1].raw.indexOf("|---|---|") !== -1 && payload.indexOf("[code:") !== -1;
       }
     }
   ];
@@ -310,6 +310,7 @@
     if (block.type === "header") return "header " + block.style;
     if (block.type === "list") return "list " + block.listType;
     if (block.type === "code") return block.lang ? "code " + block.lang : "code";
+    if (block.type === "table") return "table";
     return block.type;
   }
 
@@ -319,6 +320,7 @@
     if (block.type === "list") return { type: block.listType, items: block.items };
     if (block.type === "quote") return { text: block.html, subline1: block.subline1 || "" };
     if (block.type === "code") return { text: block.text, lang: block.lang || "", lineWrapping: false };
+    if (block.type === "table") return { text: block.raw, lang: "", lineWrapping: false };
     return { type: "default" };
   }
 
@@ -350,6 +352,34 @@
       code.textContent = block.text;
       pre.appendChild(code);
       container.appendChild(pre);
+      return;
+    }
+    if (block.type === "table") {
+      var table = document.createElement("table");
+      var thead = document.createElement("thead");
+      var headRow = document.createElement("tr");
+      block.headers.forEach(function (header, index) {
+        var th = document.createElement("th");
+        th.innerHTML = header;
+        if (block.align[index]) th.style.textAlign = block.align[index];
+        headRow.appendChild(th);
+      });
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      var tbody = document.createElement("tbody");
+      block.rows.forEach(function (row) {
+        var tr = document.createElement("tr");
+        row.forEach(function (cell, index) {
+          var td = document.createElement("td");
+          td.innerHTML = cell;
+          if (block.align[index]) td.style.textAlign = block.align[index];
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      container.appendChild(table);
       return;
     }
     if (block.type === "delimiter") {
