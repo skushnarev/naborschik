@@ -209,6 +209,87 @@
         return blocks.length === 2 && blocks[1].type === "table" &&
           blocks[1].raw.indexOf("|---|---|") !== -1 && payload.indexOf("[code:") !== -1;
       }
+    },
+    {
+      n: 15,
+      name: "Дзен: H2 и H3",
+      input: "## Глава\n\n### Раздел",
+      expect: "h2 и h3",
+      check: function (blocks, payload, outputs) {
+        return outputs.dzen === "<h2>Глава</h2>\n<h3>Раздел</h3>";
+      }
+    },
+    {
+      n: 16,
+      name: "Дзен: код в цитате",
+      input: "~~~js\nconst x = 1;\n~~~",
+      expect: "blockquote без pre",
+      check: function (blocks, payload, outputs) {
+        return outputs.dzen.indexOf("<blockquote><p>const x = 1;</p></blockquote>") !== -1 &&
+          outputs.dzen.indexOf("<pre") === -1;
+      }
+    },
+    {
+      n: 17,
+      name: "Дзен: таблица списком",
+      input: "| Колонка | Значение |\n|---|---|\n| A | 1 |",
+      expect: "ul с парами заголовок: значение",
+      check: function (blocks, payload, outputs) {
+        return outputs.dzen.indexOf("<ul>") !== -1 &&
+          outputs.dzen.indexOf("<b>Колонка:</b> A") !== -1 &&
+          outputs.dzen.indexOf("<table") === -1;
+      }
+    },
+    {
+      n: 18,
+      name: "Дзен: разделитель",
+      input: "---",
+      expect: "абзац * * *",
+      check: function (blocks, payload, outputs) {
+        return outputs.dzen === "<p>* * *</p>";
+      }
+    },
+    {
+      n: 19,
+      name: "Смартлаб: код",
+      input: "~~~js\nconst x = 1;\n~~~",
+      expect: "pre и code",
+      check: function (blocks, payload, outputs) {
+        return outputs.smartlab === "<pre><code>const x = 1;</code></pre>";
+      }
+    },
+    {
+      n: 20,
+      name: "Смартлаб: таблица",
+      input: "| A | B |\n|---|---|\n| 1 | 2 |",
+      expect: "table с thead и tbody",
+      check: function (blocks, payload, outputs) {
+        return outputs.smartlab.indexOf("<table>") === 0 &&
+          outputs.smartlab.indexOf("<thead>") !== -1 &&
+          outputs.smartlab.indexOf("<tbody>") !== -1 &&
+          outputs.smartlab.indexOf("<th>A</th>") !== -1;
+      }
+    },
+    {
+      n: 21,
+      name: "Смартлаб: разделитель",
+      input: "---",
+      expect: "hr",
+      check: function (blocks, payload, outputs) {
+        return outputs.smartlab === "<hr>";
+      }
+    },
+    {
+      n: 22,
+      name: "HTML: экранирование",
+      input: "~~~\n<script>alert(1)</script>\n~~~",
+      expect: "теги кода экранированы в обоих выходах",
+      check: function (blocks, payload, outputs) {
+        return outputs.dzen.indexOf("<script>") === -1 &&
+          outputs.smartlab.indexOf("<script>") === -1 &&
+          outputs.dzen.indexOf("&lt;script&gt;") !== -1 &&
+          outputs.smartlab.indexOf("&lt;script&gt;") !== -1;
+      }
     }
   ];
 
@@ -522,7 +603,11 @@
       if (!result.ok) {
         var error = document.createElement("div");
         error.className = "check-error";
-        error.textContent = result.error || ("payload: " + result.payload);
+        error.textContent = result.error || (
+          "vc: " + result.payload +
+          "\nДзен: " + result.outputs.dzen +
+          "\nСмартлаб: " + result.outputs.smartlab
+        );
         row.appendChild(error);
       }
 
@@ -536,8 +621,16 @@
   function runCase(testCase) {
     try {
       var blocks = C.toBlocks(testCase.input);
-      var payload = C.toVcruPayload(blocks);
-      return { ok: Boolean(testCase.check(blocks, payload)), payload: payload };
+      var outputs = {
+        vc: C.toVcruPayload(blocks),
+        dzen: C.toDzenHtml(blocks),
+        smartlab: C.toSmartlabHtml(blocks)
+      };
+      return {
+        ok: Boolean(testCase.check(blocks, outputs.vc, outputs)),
+        payload: outputs.vc,
+        outputs: outputs
+      };
     } catch (error) {
       return { ok: false, error: error.message };
     }

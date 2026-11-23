@@ -32,7 +32,8 @@
 - `make status ARGS="--area vc-converter"` - по эпику.
 - `make status ARGS="--check"` - схема, ссылки, циклы блокировок.
 - `make docs-check` - задачи плюс запрет чеклистов и статусов в доках.
-- `make check` - то же, что `docs-check`, пока других проверок нет.
+- `make test` - Node-тесты конвертера.
+- `make check` - `docs-check` плюс Node-тесты.
 - `make prototype` - открыть прототип в браузере.
 - `make agents` - обновить симлинк `.opencode/commands`, после клонирования достаточно одного раза.
 
