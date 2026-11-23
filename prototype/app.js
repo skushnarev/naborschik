@@ -18,8 +18,15 @@
   var copyButton = $("copy");
   var fileInput = $("file");
   var toastEl = $("toast");
+  var hintEl = $("hint");
 
-  var state = { blocks: [], payload: "", tab: "blocks" };
+  var state = {
+    blocks: [],
+    outputs: { vc: "", dzen: "", smartlab: "" },
+    platform: "vc",
+    tab: "blocks",
+    error: ""
+  };
 
   var SAMPLE = [
     "---",
@@ -208,33 +215,82 @@
   function convert() {
     try {
       state.blocks = C.toBlocks(input.value);
-      state.payload = C.toVcruPayload(state.blocks);
+      state.outputs = {
+        vc: C.toVcruPayload(state.blocks),
+        dzen: C.toDzenHtml(state.blocks),
+        smartlab: C.toSmartlabHtml(state.blocks)
+      };
+      state.error = "";
     } catch (error) {
       state.blocks = [];
-      state.payload = "";
-      notice.textContent = "Ошибка конвертера: " + error.message;
-      notice.hidden = false;
+      state.outputs = { vc: "", dzen: "", smartlab: "" };
+      state.error = error.message;
     }
     render();
   }
 
+  function selectedOutput() {
+    return state.outputs[state.platform] || "";
+  }
+
+  function platformName() {
+    if (state.platform === "dzen") return "Дзен";
+    if (state.platform === "smartlab") return "Смартлаб";
+    return "vc.ru";
+  }
+
+  function copyLabel() {
+    return "Скопировать для " + platformName();
+  }
+
+  function hasSpecialBlocks(blocks) {
+    return blocks.some(function (block) {
+      return block.type === "code" || block.type === "table" || block.type === "delimiter";
+    });
+  }
+
+  function hintFor() {
+    if (state.platform === "dzen") {
+      return "В Дзене вставь HTML в визуальный редактор. Код станет цитатой, таблица списком, разделитель текстом. Картинки загрузи руками.";
+    }
+    if (state.platform === "smartlab") {
+      return "В Смартлабе вставь HTML в визуальный редактор. Если pre, table или hr вырежет санитайзер, напиши: деградируем их как у Дзена.";
+    }
+    return "В черновике vc.ru поставь курсор в <strong>пустой текстовый блок</strong> и вставь. Если курсор стоит в другом блоке, vc.ru склеит всё в один. Один блок уходит обычным текстом: это ограничение площадки. Картинки остаются строками <code>![[...]]</code> и меняются руками.";
+  }
+
+  function renderPlatforms() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-platform]"), function (button) {
+      button.classList.toggle("active", button.getAttribute("data-platform") === state.platform);
+    });
+  }
+
   function render() {
     var blocks = state.blocks;
+    var output = selectedOutput();
     var hasFrontmatter = /^\uFEFF?---\r?\n/.test(input.value);
 
     countBadge.textContent = String(blocks.length);
-    payloadEl.textContent = state.payload;
-    copyButton.disabled = !state.payload;
+    payloadEl.textContent = output;
+    copyButton.disabled = !output;
+    copyButton.textContent = copyLabel();
 
-    var mode = blocks.length === 1 ? "plain" : "tool";
     stats.innerHTML = "";
     stats.appendChild(pill(blocks.length + " блоков"));
-    stats.appendChild(pill(state.payload.length + " символов"));
-    stats.appendChild(pill(mode === "plain" ? "plain: один блок" : "tool: много блоков", mode === "plain" ? "warn" : "ok"));
+    stats.appendChild(pill(output.length + " символов"));
+    if (state.platform === "vc") {
+      var mode = blocks.length === 1 ? "plain" : "tool";
+      stats.appendChild(pill(mode === "plain" ? "plain: один блок" : "tool: много блоков", mode === "plain" ? "warn" : "ok"));
+    } else {
+      stats.appendChild(pill("HTML: " + platformName(), "ok"));
+    }
     if (hasFrontmatter) stats.appendChild(pill("frontmatter вырезан"));
 
     var messages = [];
-    if (blocks.length === 1) {
+    if (state.error) {
+      messages.push("Ошибка конвертера: " + state.error);
+    }
+    if (state.platform === "vc" && blocks.length === 1) {
       messages.push("Один блок уйдёт обычным текстом. vc.ru не создаёт нативный блок из одиночной строки [tool:...]. Если нужен нативный блок, добавь в выделение второй блок.");
     }
     if (blocks.length === 0) {
@@ -243,11 +299,25 @@
     if (hasFrontmatter) {
       messages.push("Frontmatter в начале вырезан: в статью он не попадает.");
     }
+    if (state.platform === "dzen" && hasSpecialBlocks(blocks)) {
+      messages.push("Дзен: код станет цитатой, таблица списком, разделитель текстом. Проверь в черновике.");
+    }
+    if (state.platform === "smartlab" && hasSpecialBlocks(blocks)) {
+      messages.push("Смартлаб: pre, table и hr могут не выжить после санитайзера. Проверь в черновике.");
+    }
     notice.hidden = messages.length === 0;
     notice.textContent = messages.join(" ");
+    hintEl.innerHTML = hintFor();
 
+    renderPlatforms();
     renderBlocks(blocks);
     setTab(state.tab);
+  }
+
+  function setPlatform(name) {
+    if (!Object.prototype.hasOwnProperty.call(state.outputs, name)) return;
+    state.platform = name;
+    render();
   }
 
   function pill(text, tone) {
@@ -473,34 +543,59 @@
     }
   }
 
-  async function copyPayload() {
-    if (!state.payload) {
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return "plain";
+    } catch (error) {
+      return fallbackCopy(text) ? "plain" : false;
+    }
+  }
+
+  async function copyHtml(html) {
+    if (navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem !== "undefined") {
+      try {
+        var item = new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([html], { type: "text/plain" })
+        });
+        await navigator.clipboard.write([item]);
+        return "rich";
+      } catch (error) {
+        // Ниже пробуем текстовый буфер: редактор может вставить HTML как текст.
+      }
+    }
+
+    return copyText(html);
+  }
+
+  async function copyOutput() {
+    var text = selectedOutput();
+    if (!text) {
       toast("Нечего копировать");
       return;
     }
 
-    var text = state.payload;
-    var copied = false;
+    var result = state.platform === "vc" ? await copyText(text) : await copyHtml(text);
 
-    try {
-      await navigator.clipboard.writeText(text);
-      copied = true;
-    } catch (error) {
-      copied = fallbackCopy(text);
-    }
-
-    if (copied) {
-      var previous = copyButton.textContent;
-      copyButton.textContent = "Скопировано";
-      toast("В буфере " + text.length + " символов. Вставь в пустой текстовый блок vc.ru.");
-      window.setTimeout(function () {
-        copyButton.textContent = previous;
-      }, 1600);
-    } else {
+    if (!result) {
       payloadEl.textContent = text;
       setTab("payload");
       toast("Не удалось скопировать автоматически. Текст открыт во вкладке Payload.");
+      return;
     }
+
+    copyButton.textContent = "Скопировано";
+    if (state.platform === "vc") {
+      toast("В буфере " + text.length + " символов. Вставь в пустой текстовый блок vc.ru.");
+    } else if (result === "rich") {
+      toast("В буфере HTML для " + platformName() + ". Вставь в визуальный редактор и проверь блоки.");
+    } else {
+      toast("В буфере исходный HTML для " + platformName() + ". Если редактор вставил теги текстом, скопируй из вкладки Payload.");
+    }
+    window.setTimeout(function () {
+      copyButton.textContent = copyLabel();
+    }, 1600);
   }
 
   function fallbackCopy(text) {
@@ -532,17 +627,23 @@
   }
 
   document.addEventListener("click", function (event) {
+    var platform = event.target.closest ? event.target.closest("[data-platform]") : null;
+    if (platform) {
+      setPlatform(platform.getAttribute("data-platform"));
+      return;
+    }
+
     var tab = event.target.closest ? event.target.closest("[data-tab]") : null;
     if (tab) setTab(tab.getAttribute("data-tab"));
   });
 
   input.addEventListener("input", convert);
-  copyButton.addEventListener("click", copyPayload);
+  copyButton.addEventListener("click", copyOutput);
 
   document.addEventListener("keydown", function (event) {
     if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
       event.preventDefault();
-      copyPayload();
+      copyOutput();
     }
   });
 

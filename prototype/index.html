@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>naborschik - прототип конвертера Markdown в блоки vc.ru</title>
+  <title>naborschik - прототип конвертера Markdown в блоки vc.ru и HTML</title>
   <style>
     :root {
       --bg: #f4f1ea;
@@ -201,6 +201,27 @@
       color: var(--warn);
       font-size: 13px;
     }
+
+    .platforms {
+      display: flex;
+      gap: 2px;
+      padding: 2px;
+      background: #efeae1;
+      border-radius: 8px;
+    }
+
+    .platforms button {
+      border: 0;
+      background: transparent;
+      padding: 5px 9px;
+      border-radius: 6px;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .platforms button:hover { background: #e5ded2; }
+    .platforms button.active { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgba(31, 28, 23, 0.08); }
 
     .tabs {
       display: flex;
@@ -438,8 +459,8 @@
         <div class="eyebrow">прототип, не плагин</div>
         <h1>naborschik</h1>
         <p class="lede">
-          Гипотеза: статью из Obsidian можно перенести в vc.ru одним копированием.
-          Вставь Markdown, проверь блоки и скопируй payload. Заголовок статьи в буфер не входит.
+          Один Markdown на три площадки: payload для vc.ru и HTML для Дзена и Смартлаба.
+          Вставь статью, выбери площадку и скопируй выход. Заголовок статьи в буфер не входит.
         </p>
       </div>
       <div class="top-actions">
@@ -462,6 +483,11 @@
 
       <section class="card">
         <div class="card-head">
+          <nav class="platforms" aria-label="Площадка">
+            <button type="button" data-platform="vc" class="active">vc.ru</button>
+            <button type="button" data-platform="dzen">Дзен</button>
+            <button type="button" data-platform="smartlab">Смартлаб</button>
+          </nav>
           <nav class="tabs" aria-label="Представление результата">
             <button type="button" data-tab="blocks" class="active">Блоки <span id="count-badge" class="tab-count">0</span></button>
             <button type="button" data-tab="payload">Payload</button>
@@ -477,7 +503,7 @@
       </section>
     </main>
 
-    <p class="hint">
+    <p id="hint" class="hint">
       В черновике vc.ru поставь курсор в <strong>пустой текстовый блок</strong> и вставь.
       Если курсор стоит в другом блоке, vc.ru склеит всё в один. Один блок уходит обычным текстом:
       это ограничение площадки. Картинки остаются строками <code>![[...]]</code> и меняются руками.
