@@ -493,10 +493,67 @@
     return blocks.map(dzenBlockToHtml).filter(Boolean).join("\n");
   }
 
+  function renderTableHtml(block) {
+    var headers = block.headers || [];
+    var rows = block.rows || [];
+    if (!headers.length && !rows.length) return "";
+
+    var head = "<tr>" + headers.map(function (header) {
+      return "<th>" + header + "</th>";
+    }).join("") + "</tr>";
+
+    var parts = ["<table>", "<thead>", head, "</thead>"];
+
+    if (rows.length) {
+      var body = rows.map(function (row) {
+        return "<tr>" + row.map(function (cell) {
+          return "<td>" + cell + "</td>";
+        }).join("") + "</tr>";
+      }).join("\n");
+      parts.push("<tbody>", body, "</tbody>");
+    }
+
+    parts.push("</table>");
+    return parts.join("\n");
+  }
+
+  function smartlabBlockToHtml(block) {
+    switch (block.type) {
+      case "header":
+        return "<" + block.style + ">" + escapeHtml(block.text) + "</" + block.style + ">";
+      case "text":
+        return block.html;
+      case "list":
+        return renderListHtml(block);
+      case "quote":
+        return "<blockquote>" + block.html + "</blockquote>";
+      case "code":
+        return "<pre><code>" + escapeHtml(block.text) + "</code></pre>";
+      case "table":
+        return renderTableHtml(block);
+      case "delimiter":
+        return "<hr>";
+      default:
+        return "";
+    }
+  }
+
+  /**
+   * Блоки в безопасный HTML для редактора Смартлаба.
+   * Без классов, id и стилей: санитайзер LiveStreet неизвестен.
+   * @param {Block[]} blocks
+   * @returns {string}
+   */
+  function toSmartlabHtml(blocks) {
+    if (!blocks || !blocks.length) return "";
+    return blocks.map(smartlabBlockToHtml).filter(Boolean).join("\n");
+  }
+
   var api = {
     toBlocks: toBlocks,
     toVcruPayload: toVcruPayload,
     toDzenHtml: toDzenHtml,
+    toSmartlabHtml: toSmartlabHtml,
     preprocess: preprocess,
     htmlToText: htmlToText,
     escapeHtml: escapeHtml
