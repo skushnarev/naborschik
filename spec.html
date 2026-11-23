@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Редактор vc.ru и плагин Obsidian «Копировать как ...»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --surface: #FFFFFF;
+    --surface-subtle: #F8F9FA;
+    --surface-hover: #F1F3F4;
+    --text: #1B1C1D;
+    --text-secondary: #575B5F;
+    --line: #DADCE0;
+    --line-subtle: #E8EAED;
+    --line-strong: #5F6368;
+    --accent: #1A73E8;
+    --pill-bg: #FFFFFF;
+    --code-bg: #F1F3F4;
+    --code-text: #1B1C1D;
+    --pre-bg: #F6F8FA;
+    --btn-bg: #F1F3F4;
+    --btn-hover: #E8EAED;
+    --btn-active-bg: #1A73E8;
+    --btn-active-text: #FFFFFF;
+
+    --normal-fill: #E8F0FE;
+    --normal-stroke: #1A73E8;
+    --normal-text: #174EA6;
+    --decision-fill: #FEF7E0;
+    --decision-stroke: #FA903E;
+    --decision-text: #B06000;
+    --bug-fill: #FCE8E6;
+    --bug-stroke: #D93025;
+    --bug-text: #A50E0E;
+    --bypass-fill: #E6F4EA;
+    --bypass-stroke: #12B5CB;
+    --bypass-text: #0D652D;
+    --end-fill: #F8F9FA;
+    --end-stroke: #9AA0A6;
+    --end-text: #3C4043;
+
+    --st-native-bg: #E6F4EA; --st-native-text: #137333; --st-native-border: #B7DFC3; --st-native-dot: #137333;
+    --st-workaround-bg: #E8F0FE; --st-workaround-text: #1A73E8; --st-workaround-border: #AECBFA; --st-workaround-dot: #1A73E8;
+    --st-degrade-bg: #FEF7E0; --st-degrade-text: #B06000; --st-degrade-border: #FDE293; --st-degrade-dot: #FA903E;
+    --st-broken-bg: #FCE8E6; --st-broken-text: #D93025; --st-broken-border: #F6AEA9; --st-broken-dot: #D93025;
+    --st-verify-bg: #F1F3F4; --st-verify-text: #575B5F; --st-verify-border: #DADCE0; --st-verify-dot: #80868B;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141414;
+      --surface: #141414;
+      --surface-subtle: #1D1E20;
+      --surface-hover: #26282B;
+      --text: #F1F3F4;
+      --text-secondary: #A2A9B0;
+      --line: #3C4043;
+      --line-subtle: #2C2F30;
+      --line-strong: #9AA0A6;
+      --accent: #8AB4F8;
+      --pill-bg: #141414;
+      --code-bg: #242628;
+      --code-text: #E8EAED;
+      --pre-bg: #1B1D1F;
+      --btn-bg: #242628;
+      --btn-hover: #303336;
+      --btn-active-bg: #1A73E8;
+      --btn-active-text: #FFFFFF;
+
+      --normal-fill: #172538; --normal-stroke: #1A73E8; --normal-text: #8AB4F8;
+      --decision-fill: #2E2312; --decision-stroke: #FA903E; --decision-text: #FCC934;
+      --bug-fill: #361918; --bug-stroke: #D93025; --bug-text: #F28B82;
+      --bypass-fill: #132C28; --bypass-stroke: #12B5CB; --bypass-text: #81C995;
+      --end-fill: #1E1F20; --end-stroke: #5F6368; --end-text: #E8EAED;
+
+      --st-native-bg: rgba(129,201,149,.15); --st-native-text: #81C995; --st-native-border: rgba(129,201,149,.35); --st-native-dot: #81C995;
+      --st-workaround-bg: rgba(26,115,232,.22); --st-workaround-text: #8AB4F8; --st-workaround-border: rgba(138,180,248,.4); --st-workaround-dot: #8AB4F8;
+      --st-degrade-bg: rgba(250,144,62,.16); --st-degrade-text: #FCC934; --st-degrade-border: rgba(252,201,52,.35); --st-degrade-dot: #FA903E;
+      --st-broken-bg: rgba(217,48,37,.2); --st-broken-text: #F28B82; --st-broken-border: rgba(242,139,130,.38); --st-broken-dot: #F28B82;
+      --st-verify-bg: rgba(162,169,176,.14); --st-verify-text: #A2A9B0; --st-verify-border: rgba(162,169,176,.3); --st-verify-dot: #A2A9B0;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #141414;
+    --surface: #141414;
+    --surface-subtle: #1D1E20;
+    --surface-hover: #26282B;
+    --text: #F1F3F4;
+    --text-secondary: #A2A9B0;
+    --line: #3C4043;
+    --line-subtle: #2C2F30;
+    --line-strong: #9AA0A6;
+    --accent: #8AB4F8;
+    --pill-bg: #141414;
+    --code-bg: #242628;
+    --code-text: #E8EAED;
+    --pre-bg: #1B1D1F;
+    --btn-bg: #242628;
+    --btn-hover: #303336;
+    --btn-active-bg: #1A73E8;
+    --btn-active-text: #FFFFFF;
+
+    --normal-fill: #172538; --normal-stroke: #1A73E8; --normal-text: #8AB4F8;
+    --decision-fill: #2E2312; --decision-stroke: #FA903E; --decision-text: #FCC934;
+    --bug-fill: #361918; --bug-stroke: #D93025; --bug-text: #F28B82;
+    --bypass-fill: #132C28; --bypass-stroke: #12B5CB; --bypass-text: #81C995;
+    --end-fill: #1E1F20; --end-stroke: #5F6368; --end-text: #E8EAED;
+
+    --st-native-bg: rgba(129,201,149,.15); --st-native-text: #81C995; --st-native-border: rgba(129,201,149,.35); --st-native-dot: #81C995;
+    --st-workaround-bg: rgba(26,115,232,.22); --st-workaround-text: #8AB4F8; --st-workaround-border: rgba(138,180,248,.4); --st-workaround-dot: #8AB4F8;
+    --st-degrade-bg: rgba(250,144,62,.16); --st-degrade-text: #FCC934; --st-degrade-border: rgba(252,201,52,.35); --st-degrade-dot: #FA903E;
+    --st-broken-bg: rgba(217,48,37,.2); --st-broken-text: #F28B82; --st-broken-border: rgba(242,139,130,.38); --st-broken-dot: #F28B82;
+    --st-verify-bg: rgba(162,169,176,.14); --st-verify-text: #A2A9B0; --st-verify-border: rgba(162,169,176,.3); --st-verify-dot: #A2A9B0;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Google Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Top Navigation Bar */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line-subtle);
+    backdrop-filter: blur(8px);
+  }
+  .topbar-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .toc-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .toc-links a {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 4px 9px;
+    border-radius: 6px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--line-subtle);
+  }
+  .toc-links a:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+  }
+  .theme-btn {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--surface-subtle);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .theme-btn:hover { background: var(--surface-hover); }
+
+  /* Document Body */
+  .doc {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+  .doc h1 {
+    font-size: 28px;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    margin: 0 0 18px;
+  }
+  .doc h2 {
+    font-size: 22px;
+    line-height: 1.3;
+    margin: 44px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line-subtle);
+    scroll-margin-top: 64px;
+  }
+  .doc h3 {
+    font-size: 17.5px;
+    line-height: 1.35;
+    margin: 28px 0 10px;
+  }
+  .doc h4 {
+    font-size: 15.5px;
+    line-height: 1.4;
+    margin: 22px 0 8px;
+  }
+  .doc p { margin: 0 0 14px; }
+  .doc ul, .doc ol { margin: 0 0 16px; padding-left: 24px; }
+  .doc li { margin-bottom: 7px; }
+  .doc a { color: var(--accent); text-decoration: none; }
+  .doc a:hover { text-decoration: underline; }
+  .doc hr {
+    border: 0;
+    border-top: 1px solid var(--line-subtle);
+    margin: 34px 0;
+  }
+  .doc code {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.87em;
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 2px 5px;
+    border-radius: 4px;
+    word-break: break-word;
+  }
+  .code-wrap {
+    position: relative;
+    margin: 14px 0 18px;
+  }
+  .doc pre {
+    margin: 0;
+    background: var(--pre-bg);
+    border: 1px solid var(--line-subtle);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  .doc pre code {
+    background: transparent;
+    padding: 0;
+    font-size: 13px;
+    word-break: normal;
+  }
+  .copy-code-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .copy-code-btn:hover { color: var(--text); background: var(--surface-hover); }
+
+  /* Markdown Tables */
+  .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    margin: 16px 0 22px;
+    border: 1px solid var(--line-subtle);
+    border-radius: 8px;
+  }
+  .doc table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .doc th, .doc td {
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line-subtle);
+  }
+  .doc th {
+    background: var(--surface-subtle);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .doc tr:last-child td { border-bottom: none; }
+
+  /* Embedded Interactive Cards */
+  .viz-card {
+    margin: 26px 0;
+    padding: 18px 18px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  /* ==================== VISUAL 1 SCOPED STYLES ==================== */
+  .v1-wrap { max-width: 800px; margin: 0 auto; line-height: 1.45; }
+  .v1-wrap .visual-title { font-size: 18px; font-weight: 700; color: var(--text); margin: 0 0 12px; letter-spacing: -0.01em; line-height: 1.3; }
+  .v1-wrap .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .v1-wrap .legend { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 12px; color: var(--text-secondary); }
+  .v1-wrap .legend-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .v1-wrap .legend-swatch { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid transparent; flex-shrink: 0; }
+  .v1-wrap .swatch-normal { background: var(--normal-fill); border-color: var(--normal-stroke); }
+  .v1-wrap .swatch-decision { background: var(--decision-fill); border-color: var(--decision-stroke); }
+  .v1-wrap .swatch-bug { background: var(--bug-fill); border-color: var(--bug-stroke); }
+  .v1-wrap .swatch-bypass { background: var(--bypass-fill); border-color: var(--bypass-stroke); }
+  .v1-wrap .scenario-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+  .v1-wrap .scenario-btn { appearance: none; border: 1px solid var(--line); background: var(--btn-bg); color: var(--text); font-family: inherit; font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 6px; cursor: pointer; line-height: 1.2; }
+  .v1-wrap .scenario-btn:hover { background: var(--btn-hover); }
+  .v1-wrap .scenario-btn.active { background: var(--btn-active-bg); border-color: var(--btn-active-bg); color: var(--btn-active-text); }
+  .v1-wrap .scenario-btn.active[data-scenario="crlf"] { background: #D93025; border-color: #D93025; color: #FFFFFF; }
+  .v1-wrap .scenario-btn.active[data-scenario="bypass"] { background: #12B5CB; border-color: #12B5CB; color: #0E1718; }
+  .v1-wrap .diagram-wrap { width: 100%; overflow: hidden; margin-bottom: 12px; }
+  .v1-wrap svg { width: 100%; height: auto; display: block; user-select: none; }
+  .v1-wrap .node-group { cursor: pointer; }
+  .v1-wrap .node-rect { stroke-width: 1.5; rx: 8; ry: 8; }
+  .v1-wrap .node-group.cat-entry .node-rect, .v1-wrap .node-group.cat-normal .node-rect { fill: var(--normal-fill); stroke: var(--normal-stroke); }
+  .v1-wrap .node-group.cat-decision .node-rect { fill: var(--decision-fill); stroke: var(--decision-stroke); }
+  .v1-wrap .node-group.cat-bug .node-rect { fill: var(--bug-fill); stroke: var(--bug-stroke); }
+  .v1-wrap .node-group.cat-bypass .node-rect { fill: var(--bypass-fill); stroke: var(--bypass-stroke); }
+  .v1-wrap .node-group.cat-end .node-rect { fill: var(--end-fill); stroke: var(--end-stroke); }
+  .v1-wrap .node-group.selected .node-rect { stroke-width: 2.8; }
+  .v1-wrap .node-group.dimmed { opacity: 0.22; }
+  .v1-wrap .node-title { font-family: 'Google Sans', system-ui, sans-serif; font-size: 12.5px; font-weight: 700; fill: var(--text); }
+  .v1-wrap .node-sub { font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; font-size: 10.5px; font-weight: 500; fill: var(--text-secondary); }
+  .v1-wrap .node-group.cat-bug .node-sub { fill: var(--bug-text); }
+  .v1-wrap .node-group.cat-bypass .node-sub { fill: var(--bypass-text); }
+  .v1-wrap .node-badge-bg.cat-bug { fill: #D93025; }
+  .v1-wrap .node-badge-bg.cat-bypass { fill: #12B5CB; }
+  .v1-wrap .node-badge-text { font-family: 'Google Sans', system-ui, sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.04em; fill: #FFFFFF; }
+  .v1-wrap .node-badge-text.dark-ink { fill: #0B191B; }
+  .v1-wrap .edge-path { fill: none; stroke: var(--line-strong); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .v1-wrap .edge-group.edge-bug .edge-path { stroke: #D93025; stroke-dasharray: 5 3; }
+  .v1-wrap .edge-group.edge-bypass .edge-path { stroke: #12B5CB; stroke-width: 2.2; }
+  .v1-wrap .edge-group.dimmed { opacity: 0.16; }
+  .v1-wrap .edge-label-bg { fill: var(--pill-bg); stroke: var(--line); stroke-width: 0.8; rx: 4; ry: 4; }
+  .v1-wrap .edge-group.edge-bug .edge-label-bg { stroke: #D93025; }
+  .v1-wrap .edge-group.edge-bypass .edge-label-bg { stroke: #12B5CB; }
+  .v1-wrap .edge-label-text { font-family: 'Google Sans', system-ui, sans-serif; font-size: 10px; font-weight: 500; fill: var(--text-secondary); }
+  .v1-wrap .edge-group.edge-bug .edge-label-text { fill: var(--bug-text); font-weight: 700; }
+  .v1-wrap .edge-group.edge-bypass .edge-label-text { fill: var(--bypass-text); font-weight: 700; }
+  .v1-wrap .marker-default { fill: var(--line-strong); }
+  .v1-wrap .marker-bug { fill: #D93025; }
+  .v1-wrap .marker-bypass { fill: #12B5CB; }
+  .v1-wrap .inspector { background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
+  .v1-wrap .inspector-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .v1-wrap .inspector-badge { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 4px; }
+  .v1-wrap .badge-entry, .v1-wrap .badge-normal { background: var(--normal-fill); color: var(--normal-text); border: 1px solid var(--normal-stroke); }
+  .v1-wrap .badge-decision { background: var(--decision-fill); color: var(--decision-text); border: 1px solid var(--decision-stroke); }
+  .v1-wrap .badge-bug { background: var(--bug-fill); color: var(--bug-text); border: 1px solid var(--bug-stroke); }
+  .v1-wrap .badge-bypass { background: var(--bypass-fill); color: var(--bypass-text); border: 1px solid var(--bypass-stroke); }
+  .v1-wrap .badge-end { background: var(--end-fill); color: var(--end-text); border: 1px solid var(--end-stroke); }
+  .v1-wrap .inspector-title { font-size: 14.5px; font-weight: 700; color: var(--text); }
+  .v1-wrap .inspector-sub { font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; font-size: 11.5px; color: var(--text-secondary); margin-left: auto; }
+  .v1-wrap .inspector-desc { font-size: 13px; color: var(--text); margin: 0 0 8px; line-height: 1.5; }
+  .v1-wrap .inspector-code { font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; font-size: 11.5px; background: var(--code-bg); color: var(--text); padding: 7px 10px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; margin-bottom: 8px; border-left: 3px solid var(--line-strong); }
+  .v1-wrap .inspector-code.code-bug { border-left-color: #D93025; }
+  .v1-wrap .inspector-code.code-bypass { border-left-color: #12B5CB; }
+  .v1-wrap .inspector-tip { font-size: 12.5px; color: var(--text-secondary); display: flex; gap: 6px; align-items: baseline; }
+  .v1-wrap .inspector-tip strong { color: var(--text); font-weight: 600; white-space: nowrap; }
+  .v1-wrap .inspector-hint { font-size: 11px; color: var(--text-secondary); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
+  .v1-wrap .caption { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 6px; }
+  .v1-wrap .caption b { color: var(--text); font-weight: 600; }
+  .v1-wrap .sources { font-size: 11.5px; color: var(--text-secondary); line-height: 1.4; margin: 0; }
+
+  /* ==================== VISUAL 2 SCOPED STYLES ==================== */
+  .v2-wrap { max-width: 800px; margin: 0 auto; line-height: 1.4; }
+  .v2-wrap .viz-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); margin: 0 0 12px; line-height: 1.3; }
+  .v2-wrap .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; }
+  .v2-wrap .filter-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text-secondary); background: var(--surface-subtle); border: 1px solid var(--line-subtle); border-radius: 999px; cursor: pointer; user-select: none; }
+  .v2-wrap .filter-btn:hover { background: var(--surface-hover); color: var(--text); }
+  .v2-wrap .filter-btn.is-active { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .v2-wrap .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .v2-wrap .dot-native { background: var(--st-native-dot); }
+  .v2-wrap .dot-workaround { background: var(--st-workaround-dot); }
+  .v2-wrap .dot-degrade { background: var(--st-degrade-dot); }
+  .v2-wrap .dot-broken { background: var(--st-broken-dot); }
+  .v2-wrap .dot-verify { background: var(--st-verify-dot); }
+  .v2-wrap .filter-count { font-size: 11px; opacity: 0.72; font-variant-numeric: tabular-nums; }
+  .v2-wrap .matrix { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .v2-wrap .matrix-head, .v2-wrap .matrix-row { display: grid; grid-template-columns: minmax(158px, 1.35fr) repeat(4, minmax(112px, 1fr)); align-items: stretch; }
+  .v2-wrap .matrix-head { background: var(--surface-subtle); border-bottom: 1px solid var(--line); }
+  .v2-wrap .head-cell { padding: 9px 8px 8px; display: flex; flex-direction: column; justify-content: space-between; gap: 4px; }
+  .v2-wrap .head-cell + .head-cell { border-left: 1px solid var(--line-subtle); }
+  .v2-wrap .head-title { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.25; }
+  .v2-wrap .head-sub { font-size: 10.5px; color: var(--text-secondary); line-height: 1.2; }
+  .v2-wrap .mini-bar { display: flex; height: 4px; width: 100%; border-radius: 2px; overflow: hidden; background: var(--line-subtle); margin-top: 3px; }
+  .v2-wrap .mini-bar-seg { height: 100%; }
+  .v2-wrap .matrix-row { border-bottom: 1px solid var(--line-subtle); }
+  .v2-wrap .matrix-row:last-child { border-bottom: none; }
+  .v2-wrap .el-cell { padding: 7px 10px 7px 6px; display: flex; flex-direction: column; justify-content: center; gap: 2px; background: var(--surface); }
+  .v2-wrap .el-name { font-size: 12.5px; font-weight: 500; color: var(--text); line-height: 1.2; }
+  .v2-wrap .el-syntax { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; color: var(--text-secondary); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .v2-wrap .status-cell { padding: 5px 6px; border-left: 1px solid var(--line-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; border-top: none; border-right: none; border-bottom: none; font-family: inherit; width: 100%; text-align: center; }
+  .v2-wrap .status-cell:hover { background: var(--surface-subtle); }
+  .v2-wrap .status-cell.is-selected { background: var(--surface-subtle); outline: 2px solid var(--accent); outline-offset: -2px; position: relative; z-index: 2; }
+  .v2-wrap .status-cell.is-dimmed { opacity: 0.2; }
+  .v2-wrap .badge { display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 100%; padding: 4px 6px; border-radius: 5px; font-size: 11px; font-weight: 500; line-height: 1.15; border: 1px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .v2-wrap .badge-native { background: var(--st-native-bg); color: var(--st-native-text); border-color: var(--st-native-border); }
+  .v2-wrap .badge-workaround { background: var(--st-workaround-bg); color: var(--st-workaround-text); border-color: var(--st-workaround-border); }
+  .v2-wrap .badge-degrade { background: var(--st-degrade-bg); color: var(--st-degrade-text); border-color: var(--st-degrade-border); }
+  .v2-wrap .badge-broken { background: var(--st-broken-bg); color: var(--st-broken-text); border-color: var(--st-broken-border); }
+  .v2-wrap .badge-verify { background: var(--st-verify-bg); color: var(--st-verify-text); border-color: var(--st-verify-border); }
+  .v2-wrap .mobile-col-label { display: none; }
+  .v2-wrap .inspector { margin-top: 12px; padding: 11px 14px; background: var(--surface-subtle); border: 1px solid var(--line-subtle); border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .v2-wrap .inspector-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .v2-wrap .inspector-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .v2-wrap .inspector-sep { color: var(--text-secondary); font-weight: 400; }
+  .v2-wrap .inspector-syntax { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 400; padding: 1px 6px; border-radius: 4px; background: var(--code-bg); color: var(--code-text); }
+  .v2-wrap .inspector-pill { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; border: 1px solid transparent; }
+  .v2-wrap .inspector-rule { font-size: 12.5px; color: var(--text); line-height: 1.48; }
+  .v2-wrap .inspector-hint { font-size: 11px; color: var(--text-secondary); }
+  .v2-wrap .viz-footer { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .v2-wrap .caption { font-size: 12px; color: var(--text-secondary); line-height: 1.45; margin: 0; }
+  .v2-wrap .caption b { color: var(--text); font-weight: 500; }
+  .v2-wrap .sources { font-size: 11.5px; color: var(--text-secondary); line-height: 1.45; margin: 0; }
+
+  @media (max-width: 620px) {
+    .doc { padding: 20px 14px 48px; }
+    .doc h1 { font-size: 22px; }
+    .viz-card { padding: 12px; }
+    .v1-wrap .inspector-sub { margin-left: 0; width: 100%; }
+    .v1-wrap .toolbar { flex-direction: column; align-items: flex-start; }
+    .v2-wrap .matrix-head { display: none; }
+    .v2-wrap .matrix-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px 6px; }
+    .v2-wrap .el-cell { grid-column: 1 / -1; padding: 0 0 4px; flex-direction: row; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .v2-wrap .status-cell { border: 1px solid var(--line-subtle); border-radius: 6px; padding: 6px; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; }
+    .v2-wrap .mobile-col-label { display: block; font-size: 10px; font-weight: 600; color: var(--text-secondary); line-height: 1.1; }
+    .v2-wrap .badge { justify-content: flex-start; }
+  }
+
+  @media print {
+    .topbar, .copy-code-btn { display: none !important; }
+    .viz-card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <nav class="toc-links" aria-label="Разделы документа">
+      <a href="#bug-report">Баг-репорт и патчи</a>
+      <a href="#vc-spec">Спецификация vc.ru</a>
+      <a href="#plugins-review">Плагины Obsidian</a>
+      <a href="#platforms">vc.ru / Дзен / Смартлаб</a>
+      <a href="#architecture">Архитектура плагина</a>
+    </nav>
+    <button type="button" class="theme-btn" id="theme-toggle">Сменить тему</button>
+  </div>
+</header>
+
+<main class="doc">
+  <h1>Баг-репорт для редактора vc.ru и спецификация для плагина Obsidian «Копировать как ...»</h1>
+
+  <p>Ниже собраны два готовых рабочих материала: структурированный баг-репорт с минимальными патчами для команды «Комитета» (vc.ru / DTF) и полная техническая спецификация клиентского редактора vc.ru, на базе которой можно построить плагин для Obsidian с контекстным подменю «Копировать как ...» и адаптерами под vc.ru, Дзен и Смартлаб. Вторая версия юзерскрипта из прошлого шага с высокой вероятностью не сработала по одной из двух причин: либо в той же вкладке остался активным первый перехватчик <code>paste</code> (его <code>stopImmediatePropagation()</code> перехватывал событие раньше, а повторно отправленное событие с <code>isTrusted === false</code> второй скрипт игнорировал), либо в буфере присутствовал непустой <code>text/html</code>, из-за чего редактор полностью игнорировал исправленный <code>text/plain</code>.</p>
+
+  <p>Разбор клиентского бандла <code>index-7X-HR7JT.js</code> и чанка <code>Editor-BDsWKcso.js</code> показывает, что поломка копипаста на Windows вызвана не отказом от внутреннего формата, а сочетанием четырёх конкретных дефектов в модуле вставки <code>Voe</code>, инструменте заголовков <code>Sb</code> и санитайзере <code>Xoe</code>. Ключевой инженерный вывод для будущего плагина Obsidian: в Windows браузер Chromium системно добавляет возврат каретки <code>\r\n</code> при чтении <code>text/plain</code>, поэтому адаптеру vc.ru надёжнее обходить сломанную ветку <code>text/plain</code> через обнаруженный в <code>appendHTMLParts</code> «мост» в <code>text/html</code> — оборачивать блоки формата <code>[tool:{...}]</code> в одиночные теги <code>&lt;p&gt;</code> с JSON-экранированием внутренних тегов (<code>\u003c</code>, <code>\u003e</code>). Этот механизм выведен непосредственно из кода бандла и требует короткой живой проверки в консоли vc.ru перед реализацией плагина.</p>
+
+  <p>Проверка каталога Obsidian Community Plugins, GitHub и Хабра показала, что готового плагина с контекстным подменю и адаптерами для vc.ru, Дзена и Смартлаба сейчас нет — ниша для площадок Рунета свободна. При этом существует близкий по архитектуре open-source прототип <a href="https://github.com/canartuc/pubcopy" target="_blank" rel="noopener noreferrer">Pubcopy</a> (лицензия MIT, адаптеры для Medium и Substack через подменю ПКМ), который удобно использовать как архитектурный референс или базу для форка.</p>
+
+  <hr />
+
+  <h2 id="bug-report">Готовый баг-репорт и минимальные патчи для команды vc.ru / DTF</h2>
+  <p>Материал ниже оформлен так, чтобы его можно было без переработки отправить команде «Комитета» или опубликовать в разделе багов. В отчёт включены все четыре подтверждённых дефекта в порядке убывания критичности.</p>
+
+  <h3>Текст баг-репорта</h3>
+  <p><strong>Заголовок:</strong> Редактор (CodeX Editor / Paragraph): на Windows сломана многоблочная вставка <code>text/plain</code> (включая копирование между черновиками), теряется уровень <code>H3</code>, а одиночные блоки и инлайн-форматирование в HTML отбрасываются</p>
+  <p><strong>Окружение:</strong> веб-редактор vc.ru / DTF (общий движок редактора в клиентских бандлах <code>index-7X-HR7JT.js</code> и <code>Editor-BDsWKcso.js</code>); Windows 10/11 + Chromium-браузеры (Chrome, Edge, Яндекс Браузер). На macOS баг № 1 не воспроизводится из-за системных переводов строки LF (<code>\n</code>), баги № 2–4 воспроизводятся на всех ОС.</p>
+
+  <h4>Проблема 1 (Критичная): поломка многоблочной вставки <code>text/plain</code> на Windows из-за CRLF (<code>\r\n</code>)</h4>
+  <p>Для воспроизведения достаточно выполнить три шага:</p>
+  <ol>
+    <li>Открыть черновик vc.ru с несколькими блоками (заголовок, абзац, список, цитата, разделитель, медиа).</li>
+    <li>Выделить блоки и скопировать (<code>Ctrl+C</code>). Метод <code>koe.copyToClipBoard</code> сериализует их в <code>text/plain</code> через <code>"\n\n"</code> (заголовки в <code>##</code>/<code>###</code>, остальные блоки в <code>[type:{...}]</code>).</li>
+    <li>Перейти в другой черновик на Windows, поставить курсор в пустой текстовый блок (<code>text</code>) и нажать <code>Ctrl+V</code>.</li>
+  </ol>
+  <p><strong>Фактический результат:</strong> все блоки склеиваются в один текстовый блок в виде сырого текста (<code>### Заголовок</code>, <code>[list:{"items":...}]</code>, <code>[media:{...}]</code>).</p>
+  <p><strong>Причина в коде (<code>Voe.prototype.preparePlain</code>):</strong> метод режет входной текст строго по Unix-переводам <code>\n\n</code> и удаляет только <code>\n</code>:</p>
+  <div class="code-wrap"><pre><code>preparePlain(t) {
+  return t.split("\n\n").filter(s =&gt; s.trim().length &gt; 0).map(s =&gt; Uoe(s, "\n"));
+}</code></pre></div>
+  <p>На Windows системный буфер обмена и Chromium возвращают <code>clipboardData.getData("text/plain")</code> с переводами строк <code>\r\n</code> (CRLF). Разделитель между блоками превращается в <code>\r\n\r\n</code>, внутри которого нет подстроки <code>\n\n</code>. В результате <code>t.split("\n\n")</code> возвращает массив длиной <code>1</code> со всем текстом целиком. Затем <code>appendPlainParts(t)</code> проверяет <code>t.length === 1</code> и отправляет весь текст в <code>defaultPasteBehaviour("", t[0])</code> в обход парсера <code>appendPlainPart</code>.</p>
+  <p><strong>Минимальный патч:</strong></p>
+  <div class="code-wrap"><pre><code>preparePlain(t) {
+  return t
+    .replace(/\r\n?/g, "\n")
+    .split("\n\n")
+    .filter(s =&gt; s.trim().length &gt; 0)
+    .map(s =&gt; Uoe(s, "\n"));
+}</code></pre></div>
+
+  <h4>Проблема 2 (Высокая): при копировании и вставке подзаголовки H3 деградируют в H2</h4>
+  <p>При копировании блока <code>header</code> со стилем <code>h3</code> вместе с любым вторым блоком и последующей вставке обратно (на macOS или на Windows после исправления CRLF) подзаголовок всегда превращается в <code>h2</code>, хотя при копировании <code>koe.copyToClipBoard</code> корректно формирует <code>"### Текст"</code>.</p>
+  <p><strong>Причина в коде (<code>Sb.markdown.parseFrom</code>):</strong> сериализация <code>parseTo</code> учитывает уровень заголовка (<code>"#".repeat(n) + " " + s.text</code>), но обратный парсер <code>parseFrom</code> срезает все <code>#</code> без подсчёта их количества, жёстко возвращает <code>style: "h2"</code> и оставляет ведущий пробел перед текстом:</p>
+  <div class="code-wrap"><pre><code>// Текущий код в Sb:
+parseFrom(s) {
+  for (; s.charAt(0) === "#"; ) s = s.substring(1);
+  return { text: s, style: "h2" };
+}</code></pre></div>
+  <p><strong>Минимальный патч:</strong></p>
+  <div class="code-wrap"><pre><code>parseFrom(s) {
+  const match = s.match(/^(#+)\s+(.*)$/);
+  if (!match) return { text: s.trim(), style: "h2" };
+  return {
+    text: match[2],
+    style: match[1].length &gt;= 3 ? "h3" : "h2"
+  };
+}</code></pre></div>
+
+  <h4>Проблема 3 (Средняя): одиночный блок в <code>text/plain</code> обходит парсер Markdown и <code>[tool:{...}]</code></h4>
+  <p>Если скопировать и вставить в пустой текстовый блок ровно один блок (например, список <code>[list:{...}]</code>, цитату <code>[quote:{...}]</code> или <code>[header:{"text":"...","style":"h3"}]</code>), строка вставляется как сырой текст без создания соответствующего блока.</p>
+  <p><strong>Причина в коде (<code>Voe.prototype.appendPlainParts</code>):</strong> условие <code>t.length === 1</code> безусловно перенаправляет одиночный элемент в <code>defaultPasteBehaviour("", t[0])</code>, не вызывая <code>appendPlainPart</code>.</p>
+  <p><strong>Минимальный патч:</strong> проверять одиночный блок на совпадение с сериализованным тегом или Markdown-паттерном, сохраняя возврат <code>Promise</code>:</p>
+  <div class="code-wrap"><pre><code>appendPlainParts(t) {
+  if (t.length === 1) {
+    const single = t[0];
+    const isStructured =
+      /^\[([a-zA-Z]+):(.+)\]$/.test(single) ||
+      Boolean(this.editor.toolsManager.matchMarkdown(single));
+    if (isStructured &amp;&amp; this.editor.blocks.currentBlock.isEmpty) {
+      const r = this.appendPlainPart(single);
+      if (r) this.editor.caret.setToBlock(r, this.editor.caret.positions.END);
+    } else {
+      this.defaultPasteBehaviour("", single);
+    }
+    return Promise.resolve();
+  }
+  return t.reduce((s, n, i) =&gt; s.then(() =&gt; {
+    const o = i === t.length - 1;
+    const r = this.appendPlainPart(n);
+    if (o &amp;&amp; r) this.editor.caret.setToBlock(r, this.editor.caret.positions.END);
+  }), Promise.resolve());
+}</code></pre></div>
+
+  <h4>Проблема 4 (Улучшение UX): санитайзер HTML при вставке вырезает <code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;br&gt;</code> и <code>&lt;mark&gt;</code></h4>
+  <p>Базовый конфиг санитайзера <code>Xoe.DEFAULT</code> разрешает только теги <code>p</code> и <code>a</code>, тогда как сам инструмент текста (<code>nl.prototype.sanitize</code>) при сохранении поддерживает <code>a</code>, <code>b</code>, <code>i</code>, <code>p</code>, <code>mark</code> и <code>br</code>. В результате при копировании форматированного текста из Google Docs, Notion или Obsidian через <code>text/html</code> всё строковое выделение и переносы <code>&lt;br&gt;</code> удаляются ещё в <code>prepareHTML</code> и <code>appendHTMLParts</code> до создания блоков. Для исправления достаточно расширить разрешённые теги в <code>prepareHTML</code> / <code>Xoe.DEFAULT</code> тегами <code>b</code>, <code>strong</code>, <code>i</code>, <code>em</code>, <code>mark</code>, <code>br</code> (с нормализацией <code>strong</code> → <code>b</code> и <code>em</code> → <code>i</code>).</p>
+
+  <h3>Куда отправлять баг-репорт</h3>
+  <p>В открытых подсайтах <code>vc.ru/bugs</code> и <code>dtf.ru/bugs</code> встречаются жалобы пользователей на поломку списков, абзацев после блоков, сбои сохранения и кривую вставку из Notion/Obsidian, но точного технического разбора ошибок <code>preparePlain</code> и <code>Sb.markdown.parseFrom</code> в публичных тредах не найдено. Выбор канала зависит от того, что важнее — прямое попадание в продуктовую команду или публичная фиксация бага.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Канал связи</th>
+          <th>Адрес</th>
+          <th>Получатель</th>
+          <th>Рекомендация</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Продуктовая почта «Комитета»</td>
+          <td><code>platform@cmtt.ru</code></td>
+          <td>Продуктовая/техническая команда платформы</td>
+          <td><strong>Приоритетный прямой канал</strong> для инженерного баг-репорта с готовым патчем — минимум промежуточных фильтров.</td>
+        </tr>
+        <tr>
+          <td>Подсайт «Сломалось» на vc.ru</td>
+          <td><a href="https://vc.ru/bugs" target="_blank" rel="noopener noreferrer">https://vc.ru/bugs</a></td>
+          <td>Модераторы, QA и авторы vc.ru</td>
+          <td>Лучший публичный канал: даёт постоянную ссылку на кейс и собирает подтверждения от других авторов на Windows.</td>
+        </tr>
+        <tr>
+          <td>Подсайт «Сломалось» на DTF</td>
+          <td><a href="https://dtf.ru/bugs" target="_blank" rel="noopener noreferrer">https://dtf.ru/bugs</a></td>
+          <td>Та же команда редактора + активное QA-комьюнити DTF</td>
+          <td>Имеет смысл продублировать, так как редактор у площадок общий, а баги редактора на DTF часто активно обсуждают.</td>
+        </tr>
+        <tr>
+          <td>Техподдержка vc.ru / «Комитета»</td>
+          <td><code>support@vc.ru</code>, <code>support@cmtt.ru</code></td>
+          <td>Первая линия поддержки</td>
+          <td>Запасной канал; в открытых жалобах пользователи периодически отмечают задержки при разборе нетиповых техзапросов.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Почты <code>secret@vc.ru</code> (редакция), <code>moderation@vc.ru</code> (модерация) и <code>android@cmtt.ru</code> (Android-клиент) предназначены для других задач и для веб-редактора не подходят.</p>
+
+  <hr />
+
+  <h2 id="vc-spec">Техническая спецификация редактора vc.ru / DTF (CodeX Editor / Paragraph)</h2>
+  <p>Редактор vc.ru и DTF представляет собой проприетарный форк блочного редактора CodeX Editor / Editor.js (внутреннее имя компонента-обёртки — <code>Paragraph</code>). Ядро редактора, санитайзер <code>Xoe</code> (на базе <code>HTMLJanitor</code>) и обработчик буфера <code>Voe</code> загружаются в основном клиентском бандле <code>index-7X-HR7JT.js</code>, а часть прикладных инструментов (<code>quote</code>, <code>list</code>, <code>code</code>, <code>delimiter</code>, <code>osnovaEmbed</code>, <code>audio</code>) вынесена в отдельный чанк <code>Editor-BDsWKcso.js</code>. Базовым блоком по умолчанию (<code>initialBlockPlugin</code>) в компоненте <code>Paragraph</code> назначен <code>"text"</code> (в ядре <code>Eoe</code> дефолтное значение — <code>"paragraph"</code>).</p>
+
+  <h3>Маршрутизация событий вставки и копирования</h3>
+  <p>Поведение редактора при <code>Ctrl+V</code> определяется типом активного блока и составом MIME-типов в <code>clipboardData</code>. Вся логика маршрутизации сосредоточена в методах <code>Voe.blockPasteCallback</code> и <code>Voe.splitAndPaste</code>, а ключевые ловушки и обходной путь через <code>text/html</code> сведены на интерактивной схеме ниже.</p>
+
+  <!-- ==================== INTERACTIVE VISUAL 1 ==================== -->
+  <section class="viz-card" aria-label="Интерактивная схема маршрутизации paste в vc.ru">
+    <div class="v1-wrap">
+      <div class="visual-title">Как редактор vc.ru маршрутизирует буфер обмена и где проходят баги и обходной путь</div>
+      <div class="toolbar">
+        <div class="legend" aria-label="Легенда схемы">
+          <span class="legend-item"><span class="legend-swatch swatch-normal"></span>Штатный шаг</span>
+          <span class="legend-item"><span class="legend-swatch swatch-decision"></span>Проверка условия</span>
+          <span class="legend-item"><span class="legend-swatch swatch-bug"></span>Баг vc.ru</span>
+          <span class="legend-item"><span class="legend-swatch swatch-bypass"></span>Обходной мост</span>
+        </div>
+        <div class="scenario-controls" role="group" aria-label="Подсветка сценариев">
+          <button type="button" class="scenario-btn active" data-scenario="all">Вся схема</button>
+          <button type="button" class="scenario-btn" data-scenario="crlf">Подсветить баг Windows CRLF</button>
+          <button type="button" class="scenario-btn" data-scenario="bypass">Подсветить обходной HTML-мост</button>
+        </div>
+      </div>
+
+      <div class="diagram-wrap">
+        <svg id="v1-flowchart" viewBox="0 0 800 816" role="img" aria-label="Блок-схема маршрутизации события paste в редакторе vc.ru">
+          <defs>
+            <marker id="v1-arrow-default" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M 1 1.5 L 9 5 L 1 8.5 z" class="marker-default"/>
+            </marker>
+            <marker id="v1-arrow-bug" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M 1 1.5 L 9 5 L 1 8.5 z" class="marker-bug"/>
+            </marker>
+            <marker id="v1-arrow-bypass" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M 1 1.5 L 9 5 L 1 8.5 z" class="marker-bypass"/>
+            </marker>
+          </defs>
+          <g id="v1-edges-layer"></g>
+          <g id="v1-nodes-layer"></g>
+        </svg>
+      </div>
+
+      <div class="inspector" id="v1-inspector" aria-live="polite">
+        <div class="inspector-header">
+          <span class="inspector-badge" id="v1-ins-badge"></span>
+          <span class="inspector-title" id="v1-ins-title"></span>
+          <span class="inspector-sub" id="v1-ins-sub"></span>
+        </div>
+        <p class="inspector-desc" id="v1-ins-desc"></p>
+        <div class="inspector-code" id="v1-ins-code"></div>
+        <div class="inspector-tip">
+          <strong>Для адаптера Obsidian:</strong>
+          <span id="v1-ins-tip"></span>
+        </div>
+        <div class="inspector-hint">Нажмите на любой узел схемы выше, чтобы посмотреть точное условие из бандла vc.ru.</div>
+      </div>
+
+      <p class="caption">Маршрутизация события paste в классе Voe (ядро CodeX Editor на vc.ru). Красным отмечены <b>четыре бага</b> продакшен-сборки, из-за которых ломается стандартная вставка из Obsidian на Windows. Зелёным выделен <b>обходной HTML-мост</b>: передача блоков формата [tool:{...}] внутри одиночных тегов &lt;p&gt; в text/html обходит баг Windows CRLF и санитайзер Xoe.DEFAULT.</p>
+      <p class="sources">Источники: продакшен-бандл редактора vc.ru (index-7X-HR7JT.js), <a href="https://issues.chromium.org/40873740" target="_blank" rel="noopener noreferrer">Chromium Issue Tracker (#40873740)</a>.</p>
+    </div>
+  </section>
+
+  <p>Последовательность обработки события <code>paste</code> в <code>Voe.blockPasteCallback(t)</code> проходит через шесть последовательных стадий:</p>
+  <ol>
+    <li><strong>Фильтр нативных полей ввода:</strong> если <code>Xo(t.target)</code> возвращает <code>true</code> (фокус в <code>INPUT</code> или <code>TEXTAREA</code>) либо активный блок <code>currentBlock</code> отсутствует, обработчик завершает работу без вмешательства.</li>
+    <li><strong>Приоритет файлов (<code>Files</code>):</strong> вызывается <code>t.preventDefault()</code>. Если <code>clipboardData.types</code> содержит <code>"Files"</code>, управление передаётся в <code>processFiles(i.files)</code>. Редактор сопоставляет MIME-тип с <code>handledFiles</code> (инструменты медиа <code>ra</code> и <code>hl</code> принимают <code>image/png</code>, <code>image/jpeg</code>, <code>image/heic</code>, <code>image/webp</code>, <code>image/gif</code>, <code>video/mp4</code>, <code>video/quicktime</code>, а <code>hl</code> дополнительно <code>video/webm</code>), добавляет медиаблок, передаёт файл в <code>onPaste({ file })</code> и удаляет исходный пустой блок.</li>
+    <li><strong>Кастомный перехватчик блока:</strong> из буфера извлекаются <code>a = getData("text/html")</code> и <code>l = getData("text/plain")</code>. Если у текущего инструмента задан <code>externalConfig.pasteCallback</code>, вызывается он; возврат <code>false</code> прерывает дальнейшую обработку.</li>
+    <li><strong>Проверка области редактирования и развилка по типу блока:</strong> обработчик требует, чтобы цель находилась внутри <code>[contenteditable="true"]</code> и хотя бы одна из строк (<code>a</code> или <code>l</code>) была непустой. Далее срабатывает ключевое условие: только если <code>currentBlock.type === "text"</code> (<code>initialBlockPlugin</code>), вызывается <code>splitAndPaste(a, l)</code> (с последующим удалением исходного блока, если <code>s.isEmpty</code>). Если курсор находится в любом другом блоке (<code>header</code>, <code>list</code>, <code>quote</code>, <code>code</code>), многоблочный разбор отключается и вызывается <code>defaultPasteBehaviour(a, l)</code>, что, например, внутри <code>header</code> схлопывает все переносы в одну строку.</li>
+    <li><strong>Проверка <code>renderOnPaste</code> внутри <code>splitAndPaste</code>:</strong> при непустом <code>plain.trim()</code> и наличии статического флага <code>allowRenderOnPaste = true</code> (установлен на текстовом инструменте <code>ru</code>) вызывается <code>analyze(plain)</code>. Этот путь рассчитан на автопреобразование одиночных URL (ссылок, видео, соцсетей) по массиву <code>patterns</code> и мгновенно отклоняет любой текст длиннее 350 символов (<code>MAX_LENGTH_TO_PARSE = 350</code>) или содержащий хотя бы один пробельный символ (<code>/\s/.test(plain)</code>).</li>
+    <li><strong>Выбор между <code>text/html</code> и <code>text/plain</code>:</strong> если <code>html</code> (<code>text/html</code>) непустой, редактор безусловно запускает <code>appendHTMLParts(prepareHTML(html))</code>, полностью игнорируя содержимое <code>text/plain</code>. Ветка <code>appendPlainParts(preparePlain(plain))</code> выполняется только при пустом <code>text/html</code>.</li>
+  </ol>
+
+  <h3>Механика копирования и формат <code>text/plain</code></h3>
+  <p>При копировании выделенных блоков внутри редактора вызывается <code>koe.copyToClipBoard(blocks)</code>. Для каждого блока выполняется <code>editor.saver.saveBlock(n)</code>, после чего движок проверяет наличие у блока статического свойства <code>markdown</code> (<code>Wy</code>) с методом <code>parseTo</code>. У текстового инструмента <code>ru</code> метод <code>parseTo</code> разворачивает внешний одиночный <code>&lt;p&gt;</code> и отдаёт <code>innerHTML</code> (сохраняя <code>&lt;br&gt;</code>, <code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;a&gt;</code>), а у заголовка <code>Sb</code> формирует Markdown-строку <code>"#".repeat(level) + " " + s.text</code>. Все остальные инструменты (<code>list</code>, <code>quote</code>, <code>delimiter</code>, <code>code</code>, <code>media</code> и др.) не определяют <code>parseTo</code> и сериализуются в строку <code>[${n.type}:${JSON.stringify(i.data)}]</code>. Блоки склеиваются через <code>"\n\n"</code> и записываются функцией <code>_oe(str)</code> через скрытый <code>&lt;textarea&gt;</code> и <code>document.execCommand("copy")</code>, поэтому в буфер попадает исключительно <code>text/plain</code>.</p>
+  <p>При обратной вставке в <code>appendPlainPart(i)</code> каждый непустой фрагмент проходит три ступени распознавания:</p>
+  <ol>
+    <li>Вызов <code>toolsManager.matchMarkdown(i)</code>, который вырезает zero-width пробелы <code>\u200B</code> и проверяет зарегистрированные регулярные выражения. В клиентском бандле такой паттерн задан у <code>Sb</code> (<code>/^#+\s+\S/</code>), но из-за Бага № 2 он всегда возвращает <code>style: "h2"</code>.</li>
+    <li>Проверка регулярным выражением <code>/\[([a-zA-Z]+):(.+)\]/</code>: извлекается имя инструмента <code>a[1]</code> и парсится <code>JSON.parse(a[2])</code> как объект <code>data</code>. Из-за паттерна <code>[a-zA-Z]+</code> инструменты с подчёркиванием или цифрами в имени (например, <code>telegram_button</code>) этим способом не распознаются, а сам JSON должен располагаться в одной строке (переносы внутри строк кода обязаны быть экранированы как <code>\n</code>). Поскольку <code>.+</code> жадный, квадратные скобки внутри текста JSON-полей не ломают разбор, пока строка заканчивается на <code>]</code>.</li>
+    <li>Фолбэк: при отсутствии совпадений создаётся блок <code>type: "text"</code> с <code>{ text: i }</code>. Если же в теге <code>[tool:{...}]</code> передано имя незарегистрированного инструмента, обращение <code>this.editor.toolsManager.available[s].class</code> без проверки выбросит <code>TypeError</code> (хотя при рендеринге сохранённых данных <code>getToolByType</code> подставляет заглушку <code>np</code> с надписью <code>"Блок '&lt;name&gt;' не поддерживается"</code>).</li>
+  </ol>
+
+  <h3>Механика ветки <code>text/html</code> и санитайзер HTMLJanitor</h3>
+  <p>При наличии <code>text/html</code> в буфере данные проходят по цепочке <code>prepareHTML(t)</code> → <code>iA(n, true)</code> → <code>appendHTMLParts(children)</code>. На первом шаге <code>prepareHTML</code> берёт копию дефолтного конфига санитайзера <code>Xoe.DEFAULT</code> (<code>{ tags: { p: {}, a: { href: true, target: "_blank", rel: "nofollow" } } }</code>), добавляет теги из <code>handledTags</code> доступных инструментов (<code>H1</code>–<code>H6</code> из <code>Sb</code> и <code>UL</code>/<code>OL</code>/<code>LI</code> из <code>oa</code>) с предикатом <code>checkSanitizerForBlockTags</code> и прогоняет HTML через встроенный <code>HTMLJanitor</code> (<code>Yoe</code>).</p>
+  <p>Предикат <code>checkSanitizerForBlockTags</code> отклоняет <code>CODE</code> и <code>IMG</code>, если у них не задан инлайновый стиль <code>display: block</code> — а поскольку у медиаинструментов <code>ra</code> и <code>hl</code> вообще нет свойства <code>handledTags</code> (только <code>handleFiles</code>), любые <code>&lt;img&gt;</code> при вставке HTML отбрасываются. На этапе <code>Xoe.clean(t, s, true)</code> удаляются все теги вне белого списка (их текстовые потомки выносятся наружу, а <code>SCRIPT</code>/<code>STYLE</code> удаляются целиком), чистятся атрибуты, <code>&amp;nbsp;</code> заменяется на пробел, вырезаются <code>\u200B</code>, а любые последовательности пробелов и переводов строки <code>\s+</code> схлопываются в одиночный пробел. Именно здесь безвозвратно теряются <code>&lt;b&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;br&gt;</code>, <code>&lt;mark&gt;</code> и <code>&lt;s&gt;</code>.</p>
+  <p>Затем функция <code>iA(n, true)</code> преобразует плоский HTML в коллекцию верхнеуровневых блочных элементов (<code>DIV</code>, <code>P</code>, <code>H1</code>–<code>H6</code>, <code>CODE</code>, <code>PRE</code>, <code>BLOCKQUOTE</code>, <code>UL</code>, <code>OL</code>, <code>LI</code>), превращая <code>DIV</code> в <code>P</code> и оборачивая свободные строчные узлы в <code>P</code>. Далее <code>appendHTMLParts</code> обрабатывает каждый непустой элемент:</p>
+  <ul>
+    <li>Если коллекция состоит ровно из одного <code>&lt;p&gt;</code>, она сбрасывается в <code>defaultPasteBehaviour</code>.</li>
+    <li>Если элемент является <code>&lt;p&gt;</code> ровно с одним дочерним узлом (<code>n.tagName.toLowerCase() === "p" &amp;&amp; n.childNodes.length === 1</code>), редактор декодирует базовые HTML-сущности через <code>Hoe(n.innerHTML)</code> (<code>&amp;amp;</code>, <code>&amp;lt;</code>, <code>&amp;gt;</code>, <code>&amp;quot;</code>, <code>&amp;#39;</code>) и делегирует строку напрямую в <code>this.appendPlainPart(...)</code>.</li>
+    <li>Остальные теги сопоставляются с <code>handledTags</code>: у <code>Sb</code> <code>pasteParser</code> возвращает <code>{ text: s.innerHTML, style: s.tagName.toLowerCase() }</code> (благодаря чему <code>&lt;h3&gt;</code> корректно сохраняет <code>style: "h3"</code>), а у <code>oa</code> собирает <code>&lt;li&gt;</code> в массив <code>items</code> с <code>type: "UL"</code> или <code>"OL"</code>. После этого все строковые поля повторно очищаются вызовом <code>sanitizer.clean()</code> с тем же <code>Xoe.DEFAULT</code> (снова вырезая <code>&lt;b&gt;</code>/<code>&lt;i&gt;</code> внутри пунктов списка).</li>
+  </ul>
+  <p>При последующем сохранении уже созданных блоков работает отдельный санитайзер базового класса <code>nl.prototype.sanitize</code>, который гораздо мягче <code>Xoe.DEFAULT</code> и разрешает <code>a</code> (<code>href</code>, <code>target="_blank"</code>, <code>rel="nofollow noreferrer noopener"</code>), <code>b</code>, <code>i</code>, <code>p</code>, <code>mark</code> и <code>br</code> (при условии непустого <code>textContent</code>, проверяемого функцией <code>wr</code>).</p>
+
+  <h3>Справочник блоков и JSON-схемы данных</h3>
+  <p>В таблице сведены схемы блоков, извлечённые напрямую из клиентского бандла vc.ru (<code>index-7X-HR7JT.js</code>) и задокументированные на живом API в открытом проекте <a href="https://github.com/Vladimirmakarov82/vcru-publisher/blob/main/SKILL.md" target="_blank" rel="noopener noreferrer">vcru-publisher</a>.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Тип блока (<code>type</code>)</th>
+          <th>Инструмент / рендерер</th>
+          <th>JSON-схема поля <code>data</code></th>
+          <th>Инлайн-HTML при сохранении</th>
+          <th>Особенности и ограничения</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>text</code></td>
+          <td><code>ru</code> / <code>iY</code></td>
+          <td><code>{"text": "&lt;p&gt;Текст с &lt;b&gt;жирным&lt;/b&gt;, &lt;i&gt;курсивом&lt;/i&gt;, &lt;mark&gt;маркером&lt;/mark&gt;, &lt;a href=\"...\"&gt;ссылкой&lt;/a&gt;&lt;br&gt;перенос&lt;/p&gt;"}</code></td>
+          <td><code>a</code>, <code>b</code>, <code>i</code>, <code>p</code>, <code>mark</code>, <code>br</code></td>
+          <td><code>save()</code> сам оборачивает текст в <code>&lt;p&gt;</code>. Пустые абзацы пропускаются при сохранении.</td>
+        </tr>
+        <tr>
+          <td><code>header</code></td>
+          <td><code>Sb</code> / <code>EK</code></td>
+          <td><code>{"text": "Заголовок", "style": "h2"}</code> (или <code>"h3"</code>)</td>
+          <td>Нет (<code>{ tags: {} }</code> — все теги удаляются)</td>
+          <td>В UI доступны только <code>h2</code> и <code>h3</code>; при HTML-вставке <code>handleTags</code> принимает <code>H1</code>–<code>H6</code> и пишет <code>tagName.toLowerCase()</code>.</td>
+        </tr>
+        <tr>
+          <td><code>list</code></td>
+          <td><code>oa</code> / <code>AK</code></td>
+          <td><code>{"type": "UL", "items": ["Пункт 1", "Пункт 2"]}</code> (<code>"UL"</code> или <code>"OL"</code>)</td>
+          <td><code>a</code>, <code>b</code>, <code>i</code>, <code>p</code>, <code>mark</code>, <code>br</code> внутри <code>&lt;li&gt;</code></td>
+          <td><strong>Только плоские списки:</strong> вложенных подмассивов схема не поддерживает; вложенные списки Markdown необходимо сплющивать.</td>
+        </tr>
+        <tr>
+          <td><code>quote</code></td>
+          <td>рендерер <code>Ak</code></td>
+          <td><code>{"text": "&lt;p&gt;Текст цитаты&lt;/p&gt;", "subline1": "Подпись автора"}</code></td>
+          <td>Базовый инлайн-набор внутри <code>text</code></td>
+          <td>Если подписи нет, передаётся <code>subline1: ""</code>.</td>
+        </tr>
+        <tr>
+          <td><code>incut</code></td>
+          <td>Конвертер в <code>Ak</code></td>
+          <td><code>{"text": "Текст врезки"}</code></td>
+          <td>Текстовый контент</td>
+          <td>В клиентском бандле <code>convertSpecificBlocksIntoQuote</code> преобразует <code>incut</code> (как и <code>number</code>) напрямую в <code>quote</code> с <code>subline1: ""</code>.</td>
+        </tr>
+        <tr>
+          <td><code>delimiter</code></td>
+          <td>рендерер <code>SK</code></td>
+          <td><code>{"type": "default"}</code></td>
+          <td>Нет</td>
+          <td>Отрисовывает статический разделитель <code>***</code>.</td>
+        </tr>
+        <tr>
+          <td><code>code</code></td>
+          <td>рендерер <code>yK</code></td>
+          <td><code>{"text": "const x = 1;\n", "lang": "javascript", "lineWrapping": false}</code></td>
+          <td>Plain text (класс подсветки <code>language-${lang}</code>)</td>
+          <td>В <code>vcru-publisher</code> не описан; поля взяты из рендерера <code>yK</code>. Работу вставки <code>[code:{...}]</code> стоит подтвердить живым тестом в редакторе.</td>
+        </tr>
+        <tr>
+          <td><code>media</code></td>
+          <td><code>ra</code>, <code>hl</code> / <code>gT</code></td>
+          <td><code>{"items": [{"title": "подпись", "image": {"type": "image", "data": {"uuid": "...", "width": 800, "height": 600, "size": 12345, "type": "png", "color": "ffffff"}}}], "title": null}</code></td>
+          <td>В подписях — только <code>link</code> (<code>inlineToolbar: ["link"]</code>)</td>
+          <td>Локальные файлы и <code>base64</code> через HTML-буфер не вставляются — нужен серверный <code>uuid</code> или вставка как <code>Files</code>.</td>
+        </tr>
+        <tr>
+          <td><code>telegram_button</code></td>
+          <td><code>Cb</code></td>
+          <td><code>{"text": "Текст кнопки", "url": "https://t.me/..."}</code></td>
+          <td>Нет</td>
+          <td>Из-за <code>_</code> в имени блока не парсится регуляркой <code>/\[([a-zA-Z]+):(.+)\]/</code> в <code>appendPlainPart</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>В качестве альтернативы буферу обмена в стороннем проекте <code>vcru-publisher</code> описан приватный эндпоинт <code>POST https://api.vc.ru/v2.1/editor</code>, принимающий форму с JSON-полем <code>entry</code>, флагом <code>is_published: false</code> и авторизацией по <code>VC_DEVICE_TOKEN</code> или заголовку <code>JWTAuthorization</code> вместе с <code>user_id</code> (рекомендуемый лимит — не более 3 запросов в секунду). Такой путь позволяет автоматически загружать картинки по ссылке и подставлять их <code>uuid</code> (платформа дедуплицирует файлы по хешу содержимого), однако зависит от недокументированного API и требует хранения токенов авторизации.</p>
+
+  <h3>Краевые случаи и «обходной мост» для адаптера vc.ru на Windows</h3>
+  <p>Четыре краевых случая определяют конструкцию адаптера vc.ru для плагина Obsidian:</p>
+  <ol>
+    <li><strong>Проблема CRLF на Windows неустранима в чистом <code>text/plain</code>:</strong> в Chromium на Windows зафиксирован баг <a href="https://issues.chromium.org/40873740" target="_blank" rel="noopener noreferrer">#40873740</a> — даже если приложение записывает <code>navigator.clipboard.writeText('a\n\nb')</code>, при вставке в браузер <code>clipboardData.getData('text/plain')</code> всё равно возвращает <code>'a\r\n\r\nb'</code>. Пока vc.ru не поправит <code>preparePlain</code>, адаптер, пишущий только <code>text/plain</code>, на Windows без браузерного юзерскрипта работать не будет.</li>
+    <li><strong>Стандартный <code>text/html</code> теряет строковую разметку и спецблоки:</strong> при передаче обычного HTML (<code>&lt;p&gt;&lt;b&gt;жирный&lt;/b&gt;&lt;/p&gt;</code>, <code>&lt;blockquote&gt;</code>, <code>&lt;hr&gt;</code>) санитайзер <code>Xoe.DEFAULT</code> вырезает <code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;br&gt;</code> и <code>&lt;mark&gt;</code>, а цитаты, код и разделители не распознаются из-за отсутствия в <code>handledTags</code>.</li>
+    <li><strong>Обходной HTML-мост через <code>&lt;p&gt;</code> с одним текстовым потомком:</strong> из кода <code>appendHTMLParts</code> следует, что каждый <code>&lt;p&gt;</code> с <code>childNodes.length === 1</code> передаётся в <code>appendPlainPart(Hoe(n.innerHTML))</code>. Если адаптер vc.ru формирует <code>text/html</code> из последовательности <code>&lt;p&gt;[tool:{...}]&lt;/p&gt;</code>, заменяя все <code>&lt;</code> и <code>&gt;</code> внутри JSON-строк на стандартные JSON-экранирования <code>\u003c</code> и <code>\u003e</code>, то непустой <code>text/html</code> направляет <code>splitAndPaste</code> в ветку <code>appendHTMLParts</code> (полностью обходя <code>preparePlain</code> и Windows CRLF), внутри <code>&lt;p&gt;</code> нет HTML-тегов для вырезания <code>HTMLJanitor</code>, а <code>JSON.parse</code> нативно восстанавливает <code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;br&gt;</code>, <code>&lt;a&gt;</code> и <code>&lt;mark&gt;</code>, создавая полноценные блоки <code>header</code> (включая <code>h3</code>), <code>text</code>, <code>list</code>, <code>quote</code>, <code>delimiter</code> и <code>code</code>. В <code>text/plain</code> при этом кладётся чистый читаемый текст на случай вставки в обычные текстовые поля. Поскольку этот обход выведен аналитически из кода <code>Voe</code>/<code>Xoe</code>/<code>Hoe</code>, перед написанием адаптера его необходимо проверить коротким тестом в консоли vc.ru на всех целевых типах блоков.</li>
+    <li><strong>Защита от одиночного блока (<code>t.length === 1</code>):</strong> при копировании ровно одного выделенного блока единственный <code>&lt;p&gt;</code> в <code>appendHTMLParts</code> уйдёт в <code>defaultPasteBehaviour</code> и вставит <code>[header:...]</code> как сырой текст. Для одиночного блока адаптер должен отдавать нативный HTML-тег (<code>&lt;h2&gt;</code>, <code>&lt;h3&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>) либо обычный <code>&lt;p&gt;</code> без JSON-обёртки.</li>
+  </ol>
+
+  <hr />
+
+  <h2 id="plugins-review">Обзор существующих плагинов Obsidian: есть ли готовое решение</h2>
+  <p>В официальном каталоге Obsidian Community Plugins, на GitHub, Хабре и vc.ru <strong>готового плагина</strong> с подменю «Копировать как ...» и адаптерами для vc.ru, Дзена и Смартлаба не обнаружено. Существующие решения закрывают смежные задачи — экспорт в западные блоги (Medium, Substack), генерацию чистого или инлайн-HTML, а также точечную публикацию в Хабр и Telegram.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Плагин / проект</th>
+          <th>Репозиторий и лицензия</th>
+          <th>Контекстное меню / подменю</th>
+          <th>Подход и стек</th>
+          <th>Целевые форматы / площадки</th>
+          <th>Пригодность как база</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Pubcopy</strong></td>
+          <td><a href="https://github.com/canartuc/pubcopy" target="_blank" rel="noopener noreferrer">canartuc/pubcopy</a> (MIT)</td>
+          <td>Да: подменю в ПКМ редактора, меню «три точки» и Command Palette</td>
+          <td><code>unified</code> (<code>remark</code>/<code>rehype</code>), интерфейс <code>PlatformProfile</code> (<code>src/platforms/</code>), <code>navigator.clipboard.write()</code> (<code>text/html</code> + <code>text/plain</code>), KaTeX, локальные картинки в base64</td>
+          <td>Medium, Substack, Clean Markdown</td>
+          <td><strong>Лучшая база для форка или архитектурный референс.</strong> Модульная структура почти полностью повторяет задуманный плагин; MIT-лицензия, 42 коммита.</td>
+        </tr>
+        <tr>
+          <td><strong>Advanced Copy</strong></td>
+          <td><a href="https://github.com/leschuster/obsidian-advanced-copy" target="_blank" rel="noopener noreferrer">leschuster/obsidian-advanced-copy</a> (MIT)</td>
+          <td>Нет подменю ПКМ (команды в Command Palette и хоткеи по профилям)</td>
+          <td><code>unified</code> / <code>remark</code>, пользовательские профили с шаблонами для элементов Markdown</td>
+          <td>HTML, Anki, Slack, произвольные текстовые форматы</td>
+          <td>Удобен для шаблонов, но не даёт гибкого контроля пары <code>text/html</code> + <code>text/plain</code>; есть открытые тикеты по embeds (<code>#57</code>), RTF (<code>#53</code>) и выделению на mobile (<code>#58</code>).</td>
+        </tr>
+        <tr>
+          <td><strong>Enhanced Copy</strong></td>
+          <td><a href="https://github.com/Mara-Li/obsidian-enhanced-copy" target="_blank" rel="noopener noreferrer">Mara-Li/obsidian-enhanced-copy</a></td>
+          <td>Переопределение нативного <code>Ctrl+C</code> + команды</td>
+          <td>Профили преобразований Markdown/HTML/RTF с кастомным CSS, обработка callouts и <code>==highlight==</code></td>
+          <td>Произвольные профили Markdown/HTML</td>
+          <td>Заточен под замену <code>Ctrl+C</code>, а не под мультиплатформенный экспорт; в репозитории открыт issue о провале автопроверки релиза (<code>#9</code>).</td>
+        </tr>
+        <tr>
+          <td><strong>Copy Document as HTML</strong></td>
+          <td><a href="https://github.com/mvdkwast/obsidian-copy-as-html" target="_blank" rel="noopener noreferrer">mvdkwast/obsidian-copy-as-html</a></td>
+          <td>Команды + меню проводника файлов</td>
+          <td>Рендеринг Obsidian DOM → HTML, data-URI для картинок, Mermaid/Excalidraw/Dataview/PlantUML, режим HTML-фрагмента</td>
+          <td>Gmail, Google Docs, Word</td>
+          <td>Сильная поддержка диаграмм, но последние коммиты были около 2 лет назад (пользователи считают проект возможно заброшенным), нет мобильной версии и профилей площадок.</td>
+        </tr>
+        <tr>
+          <td><strong>Copy for Email and Chat</strong></td>
+          <td><a href="https://github.com/hwy1dot0/obsidian-copy-for-email" target="_blank" rel="noopener noreferrer">HWY1dot0/obsidian-copy-for-email</a></td>
+          <td>Пункт в ПКМ редактора, кнопка на ленте, Command Palette</td>
+          <td>Инлайнит все CSS-стили прямо на теги + растеризует диаграммы + настраиваемый plain-text fallback</td>
+          <td>Gmail, Apple Mail, Outlook, чаты</td>
+          <td>Хороший пример аккуратного plain-text fallback, но инлайн-CSS не нужен и часто мешает редакторам вроде vc.ru и Дзена.</td>
+        </tr>
+        <tr>
+          <td><strong>Content Copy</strong> (<code>markdown2html</code>)</td>
+          <td><a href="https://community.obsidian.md/plugins/markdown2html" target="_blank" rel="noopener noreferrer">Каталог Obsidian</a> (<code>blotspot</code>)</td>
+          <td>Только Command Palette</td>
+          <td>Рендерер Obsidian с вырезанием всех классов/атрибутов + base64 картинок до 128 КБ</td>
+          <td>Чистый HTML / plain text</td>
+          <td>Простой референс по очистке HTML от служебных атрибутов Obsidian, без адаптеров.</td>
+        </tr>
+        <tr>
+          <td><strong>Copy as PlainText</strong></td>
+          <td><a href="https://github.com/FinickySpider/Obsidian-Copy-as-Plaintext" target="_blank" rel="noopener noreferrer">FinickySpider/Obsidian-Copy-as-Plaintext</a></td>
+          <td>Пункт в ПКМ редактора + Command Palette</td>
+          <td>Два режима: regex и <code>unified</code>/<code>remark</code> AST с гибким отключением элементов GFM/LaTeX/тегов</td>
+          <td>Чистый текст</td>
+          <td>Полезный ориентир по аккуратной AST-очистке Obsidian-синтаксиса.</td>
+        </tr>
+        <tr>
+          <td><strong>obsidian-copy-image-text</strong></td>
+          <td><a href="https://github.com/msgk239/obsidian-copy-image-text" target="_blank" rel="noopener noreferrer">msgk239/obsidian-copy-image-text</a> (MIT, v1.1.8)</td>
+          <td>Только Command Palette</td>
+          <td><code>ClipboardItem</code> (<code>text/html</code>), конвертация локальных картинок до 10 МБ в base64</td>
+          <td>WeChat, Word, <strong>Хабр</strong> (рекомендован в статье на Хабре)</td>
+          <td>Закрывает вставку текста с картинками в Хабр, но не имеет адаптеров для vc.ru, Дзена и Смартлаба.</td>
+        </tr>
+        <tr>
+          <td><strong>Publish to Telegram</strong></td>
+          <td><a href="https://github.com/pan4ratte/obsidian-publish-to-telegram" target="_blank" rel="noopener noreferrer">pan4ratte/obsidian-publish-to-telegram</a></td>
+          <td>Команды публикации</td>
+          <td>Прямая отправка через API Telegram</td>
+          <td>Telegram</td>
+          <td>Другой сценарий (прямой постинг вместо буфера обмена), полезен как референс для будущего Telegram-адаптера.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Отдельно стоит отметить популярный плагин <a href="https://community.obsidian.md/plugins/copy-as-html" target="_blank" rel="noopener noreferrer">Copy as HTML</a> (<code>jenningsb2</code>, более 55 тыс. установок), который копирует выделенный Markdown как HTML для Slack и Google Docs, но не предоставляет ни подменю, ни платформенных профилей. Написание собственного плагина (с нуля или на модульном каркасе <code>Pubcopy</code>) полностью оправдано.</p>
+
+  <hr />
+
+  <h2 id="platforms">Спецификация целевых площадок для адаптеров: vc.ru, Дзен и Смартлаб</h2>
+  <p>Чтобы ядро плагина сразу проектировалось с правильными абстракциями, ниже сведены поддерживаемые форматы, ограничения и пробелы документации по всем трём целевым площадкам.</p>
+
+  <!-- ==================== INTERACTIVE VISUAL 2 ==================== -->
+  <section class="viz-card" aria-label="Интерактивная матрица совместимости элементов Obsidian">
+    <div class="v2-wrap">
+      <div class="viz-title">Совместимость элементов Obsidian при вставке в vc.ru, Дзен и Смартлаб</div>
+      <div class="toolbar" id="v2-toolbar" role="toolbar" aria-label="Фильтр по статусу совместимости"></div>
+      <div class="matrix" id="v2-matrix" role="grid" aria-label="Матрица совместимости элементов Markdown"></div>
+      <div class="inspector" id="v2-inspector" aria-live="polite"></div>
+      <footer class="viz-footer">
+        <p class="caption">
+          Сравнение поддержки ключевых элементов Obsidian Flavored Markdown в четырёх режимах вставки:
+          <b>vc.ru (text/plain)</b> с учётом текущих багов на Windows,
+          <b>vc.ru (HTML-мост)</b> через одиночные &lt;p&gt; с JSON-блоками,
+          <b>Дзен</b> (по официальной справке редактора статей) и
+          <b>Смартлаб</b> (TinyMCE / lseditor).
+          Ячейки со статусом «Проверить» отражают отсутствие открытой документации санитайзера Смартлаба.
+        </p>
+        <p class="sources">
+          Источники: исходный код редактора vc.ru (бандл CodeX Editor),
+          <a href="https://github.com/Vladimirmakarov82/vcru-publisher/blob/main/SKILL.md" target="_blank" rel="noopener noreferrer">vcru-publisher (GitHub)</a>,
+          <a href="https://issues.chromium.org/40873740" target="_blank" rel="noopener noreferrer">Chromium (#40873740)</a>,
+          <a href="https://dzen.ru/help/ru/channel/article.html" target="_blank" rel="noopener noreferrer">Справка Дзена</a>,
+          <a href="https://smart-lab.ru/blog/586124.php" target="_blank" rel="noopener noreferrer">Smart-Lab (TinyMCE / LiveStreet)</a>.
+        </p>
+      </footer>
+    </div>
+  </section>
+
+  <h3>Требования адаптера для Дзена</h3>
+  <p>Согласно инженерной публикации Яндекса и сторонним инструментам (<code>MCP-dzen</code>, <code>ViralDzen</code>), редактор статей Дзена и SSR-структура публикаций <code>dzen.ru/a/{id}</code> опираются на <strong>Draft.js</strong>. В отдельных сторонних описаниях автопостеров упоминаются также Quill и ProseMirror, а официальной спецификации обработчика <code>clipboardData</code> Дзен не публикует — поэтому точную реакцию текущей Дзен-студии на вложенные списки и <code>&lt;br&gt;</code> лучше перепроверить живой вставкой.</p>
+  <p>По <a href="https://dzen.ru/help/ru/channel/article.html" target="_blank" rel="noopener noreferrer">официальной справке редактора статей Дзена</a>, адаптер должен учитывать строгие ограничения форматов и лимитов:</p>
+  <ul>
+    <li><strong>Поддерживаемое форматирование:</strong> полужирный, курсив, зачёркнутый текст и гиперссылки (ссылки запрещены в заголовке статьи); из блоков — подзаголовки строго <strong>H2 и H3</strong> (автоматически собирают оглавление), маркированный и нумерованный списки, цитата.</li>
+    <li><strong>Отсутствующие элементы:</strong> справка Дзена не перечисляет среди доступных инструментов блоки кода, горизонтальные разделители и таблицы. Адаптеру нужна деградация: понижать H4–H6 до H3 или жирного абзаца, разворачивать таблицы в маркированные списки (по аналогии с профилем Medium в <code>Pubcopy</code>), преобразовывать callouts <code>&gt; [!note]</code> в <code>&lt;blockquote&gt;</code> с жирным заголовком, а блоки кода — в цитату или форматированный текст.</li>
+    <li><strong>Лимиты статьи:</strong> заголовок до 140 символов, текст до 100 000 знаков с пробелами, суммарно до 100 вложений (картинки/GIF от 300 px шириной и до 30 МБ с подписью до 2000 символов, галереи до 30 фото, видео и формы). Проверку длины и подсчёт вложений удобно встроить прямо в валидатор адаптера.</li>
+  </ul>
+
+  <h3>Требования адаптера для Смартлаба</h3>
+  <p>Смартлаб исторически работает на движке <strong>LiveStreet</strong> с визуальным редактором на базе <strong>TinyMCE</strong> (в интерфейсе фигурирует панель <code>lseditor</code>). На открытых страницах сайта подтверждена поддержка полужирного (<code>Ctrl+B</code>), курсива (<code>Ctrl+I</code>), подчёркнутого (<code>Ctrl+U</code>), зачёркнутого текста, цвета шрифта, ссылок и смайлов.</p>
+  <p>В открытом доступе <strong>отсутствует официальная спецификация</strong> разрешённых HTML-тегов и правил <code>paste_preprocess</code> редактора Смартлаба; пользовательские публикации упоминают лишь движок LiveStreet/TinyMCE и фильтрацию атрибутов вроде <code>id</code> и классов. Для адаптера это означает простую тактику: генерировать чистый семантический <code>text/html</code> без классов, <code>id</code> и CSS-переменных темы Obsidian (<code>&lt;p&gt;</code>, <code>&lt;h2&gt;</code>, <code>&lt;h3&gt;</code>, <code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;s&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;blockquote&gt;</code>, <code>&lt;a&gt;</code>), а перед фиксацией правил для таблиц, блоков кода и тега <code>&lt;cut&gt;</code> снять актуальный объект <code>tinymce.activeEditor?.settings</code> в DevTools на странице создания поста Смартлаба.</p>
+
+  <hr />
+
+  <h2 id="architecture">Архитектура плагина Obsidian «Копировать как ...»</h2>
+  <p>Оптимальная база — модульный TypeScript-плагин (сборка через <code>esbuild</code>, стандартная структура плагинов Obsidian), разделённый на четыре независимых слоя: интеграция UI, парсер Obsidian Markdown в AST, реестр адаптеров площадок и кроссплатформенный модуль буфера обмена.</p>
+
+  <h3>Интеграция в контекстное меню и нюансы <code>setSubmenu()</code></h3>
+  <p>Официальный API Obsidian позволяет встраивать пункты в контекстное меню редактора (<code>editor-menu</code>) и меню файла/проводника (<code>file-menu</code>) через <code>this.app.workspace.on(...)</code>. В <code>editor-menu</code> при наличии выделения логично копировать <code>editor.getSelection()</code>, а при пустом выделении — всю заметку <code>editor.getValue()</code>; в <code>file-menu</code> — читать весь файл через <code>app.vault.read(file)</code>.</p>
+  <p>Для каскадного подменю «Копировать как ...» в десктопном Obsidian (с ветки v1.4.x) существует метод <code>MenuItem.setSubmenu()</code>, который применяют в том числе <code>Pubcopy</code> и <code>Canvas Node Align</code>. Однако <strong>это приватный (недокументированный) API</strong>: его нет в официальном <code>obsidian.d.ts</code>, поэтому потребуется расширение типов (module augmentation), а при публикации в Community Plugins или запуске на мобильных устройствах жёсткая привязка к нему может не пройти ревью или не сработать.</p>
+  <p>Надёжный паттерн — feature detection с деградацией в <code>SuggestModal</code> выбора адаптера:</p>
+  <div class="code-wrap"><pre><code>declare module 'obsidian' {
+  interface MenuItem {
+    setSubmenu?: () =&gt; Menu;
+  }
+}
+
+this.registerEvent(
+  this.app.workspace.on('editor-menu', (menu, editor, info) =&gt; {
+    menu.addItem((item) =&gt; {
+      item.setTitle('Копировать как ...').setIcon('copy');
+      if (typeof item.setSubmenu === 'function') {
+        const submenu = item.setSubmenu();
+        for (const adapter of this.adapters) {
+          submenu.addItem((sub) =&gt;
+            sub
+              .setTitle(adapter.name)
+              .setIcon(adapter.icon)
+              .onClick(() =&gt; this.copyWithAdapter(adapter, editor, info))
+          );
+        }
+      } else {
+        item.onClick(() =&gt; this.openAdapterPickerModal(editor, info));
+      }
+    });
+  })
+);</code></pre></div>
+  <p>Помимо контекстного меню стоит продублировать каждый адаптер отдельной командой в Command Palette (<code>this.addCommand</code>), чтобы пользователи могли назначать хоткеи на любимые площадки.</p>
+
+  <h3>Кроссплатформенная запись в буфер обмена (Web Clipboard API vs Electron)</h3>
+  <p>Для записи в системный буфер обмена стоит использовать стандартный <strong>Web Async Clipboard API (<code>navigator.clipboard.write</code> + <code>ClipboardItem</code>)</strong>, как это делают <code>Pubcopy</code> и <code>obsidian-copy-image-text</code>. Метод работает на десктопе и мобильных клиентах, ограничивается только записью (write-only, не читает чужой буфер) и позволяет атомарно записывать <code>text/html</code> и <code>text/plain</code> раздельно или вместе:</p>
+  <div class="code-wrap"><pre><code>async function writeClipboard(payload: { html?: string; plain: string }): Promise&lt;void&gt; {
+  const items: Record&lt;string, Blob&gt; = {
+    'text/plain': new Blob([payload.plain], { type: 'text/plain' })
+  };
+  if (payload.html) {
+    items['text/html'] = new Blob([payload.html], { type: 'text/html' });
+  }
+  await navigator.clipboard.write([new ClipboardItem(items)]);
+}</code></pre></div>
+  <p>Если конкретному адаптеру нужно записать строго <code>text/plain</code> (например, для чистого Markdown), ключ <code>text/html</code> просто не включается в <code>ClipboardItem</code>.</p>
+  <p>Прямое обращение к <code>require('electron').clipboard</code> нежелательно сразу по четырём причинам: оно не работает на iOS/Android; в Electron 44 проведена реархитектура модуля <code>clipboard</code> с удалением старых методов вроде <code>writeHTML()</code> и <code>availableFormats()</code> в пользу асинхронного <code>ClipboardItem</code>; синхронные IPC-вызовы буфера Electron внутри асинхронных команд Command Palette в Obsidian способны провоцировать баг со сбросом состояния редактора и сдвигом frontmatter; и даже Electron API не отменяет того, что на Windows чтение <code>text/plain</code> в Chromium возвращает CRLF (<code>\r\n</code>). Поэтому связка <code>navigator.clipboard.write()</code> и HTML-моста (после живой проверки последнего) даёт наиболее переносимый клиентский вариант без зависимости от ОС и приватных токенов API.</p>
+
+  <h3>Пайплайн преобразования Obsidian Markdown в AST и интерфейс адаптеров</h3>
+  <p>Обработка Markdown регулярными выражениями быстро ломается на вложенных списках, блоках кода, таблицах и экранировании. Проверенный стандарт в экосистеме Obsidian (<code>Pubcopy</code>, <code>Advanced Copy</code>, <code>Copy as PlainText</code>, <code>Anki AST Sync</code>) — единый AST-конвейер на базе <code>unified</code> + <code>remark-parse</code> + <code>remark-gfm</code>, организованный в три этапа:</p>
+  <ol>
+    <li><strong>Препроцессинг контекста Obsidian:</strong> удаление YAML frontmatter (<code>--- ... ---</code>), опциональное раскрытие встроенных заметок <code>![[note]]</code> через <code>MetadataCache</code> и <code>Vault</code>, очистка комментариев <code>%%...%%</code>, блочных идентификаторов <code>^block-id</code> и (по настройке) хештегов <code>#tag</code>.</li>
+    <li><strong>Построение расширенного MDAST:</strong> <code>remark-parse</code> + <code>remark-gfm</code> (таблицы, зачёркивание, списки задач), дополненные плагинами синтаксиса Obsidian — <code>remark-obsidian-md</code> (портирует вики-ссылки <code>[[Page|Alias]]</code>, embeds, callouts, <code>==highlight==</code>, комментарии в стандартный MDAST) и/или <code>remark-callout</code> (<code>gz-remark-callout</code>, корректно парсит форматирование внутри заголовков callout).</li>
+    <li><strong>Сериализация через изолированный адаптер (<code>PlatformAdapter</code>):</strong></li>
+  </ol>
+  <div class="code-wrap"><pre><code>export interface ConvertContext {
+  sourcePath: string;
+  settings: PluginSettings;
+  warnings: string[]; // Сборщик предупреждений для Notice (как WarningCollector в Pubcopy)
+}
+
+export interface ClipboardPayload {
+  html?: string;
+  plain: string;
+}
+
+export interface PlatformAdapter {
+  readonly id: string;           // 'vcru' | 'dzen' | 'smartlab' | 'habr' | 'clean-md'
+  readonly name: string;         // Подпись пункта в подменю «Копировать как ...»
+  readonly icon: string;         // Иконка Lucide из Obsidian
+  convert(ast: Root, ctx: ConvertContext): Promise&lt;ClipboardPayload&gt;;
+}</code></pre></div>
+  <p>Такое разделение позволяет один раз реализовать всю специфику Obsidian в общем ядре, а поддержку каждой новой площадки (vc.ru, Дзен, Смартлаб, Хабр, Telegram) добавлять в виде отдельного файла-адаптера, который собирает предупреждения в <code>ctx.warnings</code> и выводит их через <code>new Notice(...)</code> при потере или деградации неподдерживаемых элементов (например, о пропущенных локальных картинках или сплющенных таблицах).</p>
+</main>
+
+<script>
+// ==================== THEME TOGGLE & CODE COPY BUTTONS ====================
+(function () {
+  var btn = document.getElementById('theme-toggle');
+  function getCurrentTheme() {
+    var attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark' || attr === 'light') return attr;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function updateThemeLabel() {
+    btn.textContent = getCurrentTheme() === 'dark' ? 'Светлая тема' : 'Тёмная тема';
+  }
+  btn.addEventListener('click', function () {
+    var next = getCurrentTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    updateThemeLabel();
+  });
+  updateThemeLabel();
+
+  document.querySelectorAll('.code-wrap').forEach(function (wrap) {
+    var code = wrap.querySelector('code');
+    if (!code) return;
+    var copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'copy-code-btn';
+    copyBtn.textContent = 'Копировать';
+    copyBtn.addEventListener('click', function () {
+      navigator.clipboard.writeText(code.textContent).then(function () {
+        copyBtn.textContent = 'Скопировано';
+        setTimeout(function () { copyBtn.textContent = 'Копировать'; }, 1500);
+      });
+    });
+    wrap.appendChild(copyBtn);
+  });
+})();
+
+// ==================== VISUAL 1: FLOWCHART ====================
+(function () {
+  var CATEGORY_LABELS = {
+    entry: "Точка входа",
+    normal: "Штатный шаг",
+    decision: "Проверка условия",
+    bug: "Баг vc.ru",
+    bypass: "Обходной мост",
+    end: "Итог"
+  };
+
+  var NODES = [
+    {
+      id: "entry", x: 295, y: 12, w: 250, h: 52,
+      label: "Событие paste (Ctrl+V)", sublabel: "Voe.blockPasteCallback(e)", category: "entry",
+      details: "Точка входа обработчика вставки в классе Voe. Первым делом вызывает вспомогательную функцию Xo(e.target), чтобы не перехватывать вставку внутри системных полей ввода.",
+      code: 'function Xo(e) { return e && ["INPUT", "TEXTAREA"].includes(e.tagName); }',
+      tip: 'Пользователь должен поставить курсор в пустой текстовый блок редактора vc.ru (initialBlockPlugin = "text"), а не в заголовок или поле описания.'
+    },
+    {
+      id: "check_block", x: 275, y: 100, w: 290, h: 58,
+      label: "Выбор ветки разбора буфера", sublabel: "splitAndPaste(e) · text/html vs text/plain", category: "decision",
+      details: "Если фокус не в INPUT/TEXTAREA и текущий блок допускает разбиение (пустой или текстовый блок ru с allowRenderOnPaste = true), запускается splitAndPaste. При наличии MIME-типа text/html приоритет отдаётся HTML-ветке, иначе — text/plain.",
+      code: 'ce(ru, "allowRenderOnPaste", !0);\ninitialBlockPlugin: { default: "text" }',
+      tip: "Чтобы принудительно направить редактор в левую ветку и обойти баг Windows CRLF, плагин обязан писать в буфер ClipboardItem с типом text/html."
+    },
+    {
+      id: "html_prepare", x: 38, y: 214, w: 228, h: 62,
+      label: "Подготовка и очистка HTML", sublabel: "prepareHTML(t) → iA(n, !0)", category: "normal",
+      details: "Загружает базовый конфиг санитайзера sanitizer.getConfig(), добавляет в него блочные теги из handledTags (H1–H6 из Sb, UL/OL/LI из oa), прогоняет HTML через Xoe.clean(t, s, !0) и разбивает DOM на плоский список элементов функцией iA(n, !0).",
+      code: 'prepareHTML(t) {\n  const s = this.editor.sanitizer.getConfig();\n  for (let i = this.handledTags.length - 1; i >= 0; i--)\n    s.tags[this.handledTags[i].tag.toLowerCase()] = this.checkSanitizerForBlockTags;\n  const n = this.editor.sanitizer.clean(t, s, !0);\n  return iA(n, !0);\n}',
+      tip: "Функция iA(n, !0) оборачивает свободный текст и DIV в <p>, а каждый тег <p> сохраняет отдельным дочерним элементом коллекции."
+    },
+    {
+      id: "bug_sanitizer", x: 38, y: 318, w: 228, h: 62, badge: "БАГ #4",
+      label: "Срезание инлайн-тегов", sublabel: "Xoe.DEFAULT: только <p> и <a>", category: "bug",
+      details: "Базовый конфиг Xoe.DEFAULT разрешает только теги <p> и <a>. Поэтому при вызове Xoe.clean() внутри prepareHTML все инлайн-теги (<b>, <i>, <strong>, <em>, <mark>, <s>, <code>) удаляются, оставляя голый текст — хотя позже nl.prototype.sanitize их разрешает.",
+      code: 'Xoe.DEFAULT = {\n  tags: {\n    p: {},\n    a: { href: true, target: "_blank", rel: "nofollow" }\n  }\n}',
+      tip: 'Не передавайте <b>/<i>/<mark> как HTML-теги напрямую. Кодируйте их внутри JSON-строки [text:{"text":"\\u003cb\\u003e...\\u003c/b\\u003e"}] — санитайзер Xoe не трогает экранированный текст внутри <p>.'
+    },
+    {
+      id: "html_append", x: 38, y: 422, w: 228, h: 62,
+      label: "Перебор HTML-элементов", sublabel: "appendHTMLParts(nodes)", category: "decision",
+      details: "Итерируется по HTMLCollection из iA(n, !0). Если тег совпал с handledTags (H1–H6 → Sb.pasteParser, UL/OL/LI → oa.pasteParser), создаётся нативный блок. Для обычного <p> проверяется структура дочерних узлов.",
+      code: 'Sb.handleTags: ["H1".."H6"] → { text: s.innerHTML, style: tag }\noa.handleTags: ["UL","OL","LI"] → { items, type }',
+      tip: "Теги <h3> и <ul>/<ol> парсятся корректно (H3 сохраняется!), но любой инлайн внутри них уже пострадал от Xoe.DEFAULT. Единый формат <p>[tool:{...}]</p> надёжнее."
+    },
+    {
+      id: "bypass_p_hoe", x: 38, y: 530, w: 228, h: 66, badge: "ОБХОДНОЙ МОСТ",
+      label: "<p> с 1 текстовым узлом", sublabel: "childNodes.length === 1 → Hoe()", category: "bypass",
+      details: "Скрытый переход из HTML-ветки в текстовый парсер! Если элемент <p> содержит ровно один дочерний узел (один TextNode без вложенных тегов), редактор извлекает его текст через Hoe() и передаёт напрямую в appendPlainPart(), полностью минуя preparePlain() и баг length === 1.",
+      code: '<!-- В буфере text/html -->\n<p>[header:{"text":"Раздел","style":"h3"}]</p>\n<p>[text:{"text":"\\u003cb\\u003eЖирный\\u003c/b\\u003e текст"}]</p>',
+      tip: "Каждый блок статьи оборачивайте в отдельный <p> с экранированной JSON-строкой [tool:{...}] без вложенных HTML-тегов. Не используйте <a> внутри такого <p>, чтобы childNodes.length оставался равен 1."
+    },
+    {
+      id: "bug_crlf", x: 306, y: 214, w: 244, h: 62, badge: "БАГ #1",
+      label: "Разбиение по \\n\\n (Win CRLF)", sublabel: "preparePlain: \\r\\n\\r\\n ≠ \\n\\n", category: "bug",
+      details: "В Chromium на Windows (баг #40873740) clipboardData.getData('text/plain') возвращает переносы строк \\r\\n даже после navigator.clipboard.writeText('...\\n'). Метод preparePlain режет текст по \\n\\n без удаления \\r, поэтому весь текст статьи остаётся одним куском.",
+      code: '// Chromium Windows (#40873740):\nclipboardData.getData("text/plain") → "a\\r\\n\\r\\nb"\n// split("\\n\\n") → ["a\\r\\n\\r\\nb"] (length === 1)',
+      tip: "Нельзя полагаться на text/plain в Windows-сборках Chromium/Electron (включая Obsidian на Windows). Всегда дублируйте структуру через HTML-мост."
+    },
+    {
+      id: "bug_single", x: 306, y: 318, w: 244, h: 62, badge: "БАГ #2",
+      label: "Одиночный блок не парсится", sublabel: "appendPlainParts: length === 1", category: "bug",
+      details: "Если массив частей после preparePlain состоит ровно из одного элемента (из-за Windows CRLF или при вставке одного абзаца), appendPlainParts не вызывает разбор каждого элемента через appendPlainPart, а сбрасывает вставку в один текстовый блок.",
+      code: '// При parts.length === 1:\n// цикл appendPlainPart(part) не запускается → fallback',
+      tip: "Если копируется ровно один блок, отдавайте нативный HTML-тег (<h2>, <h3>, <ul>, <ol>) или обычный <p>, чтобы не сработал сброс в defaultPasteBehaviour."
+    },
+    {
+      id: "fallback_default", x: 594, y: 214, w: 186, h: 62,
+      label: "Стандартная вставка", sublabel: "defaultPasteBehaviour()", category: "end",
+      details: "Запасной путь: срабатывает в INPUT/TEXTAREA, в непустых не-текстовых блоках или при сбросе из appendPlainParts (length === 1). Если у текущего блока allowRenderOnPaste === true (текст ru), может вызвать renderOnPaste, но многоблочная статья склеивается в один блок.",
+      code: 'available[currentBlock.type].class.allowRenderOnPaste\n  && this.renderOnPaste(s)',
+      tip: "Если пользователь вставил статью в непустой блок и всё склеилось — напомните в UI плагина вставлять в новый пустой абзац."
+    },
+    {
+      id: "plain_part", x: 312, y: 530, w: 238, h: 66,
+      label: "Парсер одной строки", sublabel: "appendPlainPart(str)", category: "decision",
+      details: "Центральный диспетчер создания блоков из строки. Сюда попадают как части из text/plain (на macOS/Linux при length > 1), так и каждый <p> из обходного HTML-моста через Hoe(). Проверяет [tool:{...}], затем toolsManager.matchMarkdown(), иначе создаёт блок text.",
+      code: 'matchMarkdown(t) {\n  return this.markdownConfigs.find(\n    s => s.pattern.test(t.replace(/\\u200B/g, ""))\n  );\n}',
+      tip: "Это главная точка входа для адаптера vc.ru: префикс [tool:{...}] имеет высший приоритет и обходит баги Markdown-парсера."
+    },
+    {
+      id: "bypass_json", x: 84, y: 646, w: 242, h: 64, badge: "РЕШЕНИЕ",
+      label: "Нативный блок из JSON", sublabel: "[tool:{...}] → JSON.parse()", category: "bypass",
+      details: "Строка формата [tool:{...}] разбирается через JSON.parse() в объект данных конкретного инструмента (header, text, list, quote, code). Позволяет передать style: \"h3\" и HTML-разметку внутри поля text (<b>, <i>, <a>, <mark>), не тронутую санитайзером Xoe.DEFAULT.",
+      code: '[header:{"text":"Подзаголовок","style":"h3"}]\n[list:{"type":"UL","items":["Пункт 1","Пункт 2"]}]',
+      tip: "Используйте этот формат как основной выход адаптера vc.ru в плагине Obsidian («Копировать как vc.ru»)."
+    },
+    {
+      id: "bug_h3", x: 356, y: 646, w: 216, h: 64, badge: "БАГ #3",
+      label: "Markdown H3 → H2", sublabel: 'Sb.parseFrom() → style: "h2"', category: "bug",
+      details: "Паттерн /^#+\\s+\\S/ в Sb.markdown ловит заголовки любого уровня, но метод parseFrom(s) в цикле удаляет все символы '#' и жёстко возвращает style: \"h2\". В результате любой ### H3 из Markdown принудительно понижается до H2.",
+      code: 'parseFrom(s) {\n  for (; s.charAt(0) === "#"; ) s = s.substring(1);\n  return { text: s, style: "h2" }; // всегда h2!\n}',
+      tip: 'Не используйте Markdown-синтаксис "### Заголовок" в буфере для vc.ru — передавайте [header:{"text":"...","style":"h3"}].'
+    },
+    {
+      id: "plain_text", x: 602, y: 646, w: 178, h: 64,
+      label: "Текстовый абзац", sublabel: 'initialBlockPlugin: "text"', category: "normal",
+      details: "Если строка не совпала ни с форматом [tool:{...}], ни с одним из паттернов matchMarkdown, редактор создаёт базовый текстовый блок (тип \"text\", класс ru).",
+      code: 'let s = this.editor.config.initialBlockPlugin; // "text"',
+      tip: "Подходит для обычных абзацев без форматирования, но для абзацев со ссылками/жирным всё равно лучше использовать [text:{...}]."
+    },
+    {
+      id: "end_blocks", x: 136, y: 752, w: 528, h: 56,
+      label: "Рендер нативных блоков в CodeX Editor", sublabel: "header (Sb) · list (oa) · text (ru) · quote (Ak) · code (yK) · stub (np)", category: "end",
+      details: "Созданные блоки монтируются в документ. Поддерживаются header (H2/H3), list (UL/OL), text, quote (incut автоматически маппится в quote) и code. Если передать неизвестное имя инструмента, toolsManager.getToolByType() подставит заглушку np (ce-stub).",
+      code: 'getToolByType(t) {\n  const s = this.editor.toolsManager.available[t];\n  return s !== void 0 ? s : (np.name = t, { class: np });\n}',
+      tip: "Генерируйте только валидные типы блоков (text, header, list, quote, code, delimiter), иначе редактор отрендерит заглушку «Блок '...' не поддерживается»."
+    }
+  ];
+
+  var EDGES = [
+    { id: "e_entry_check", d: "M 420 64 L 420 98", type: "normal" },
+    { id: "e_check_html", d: "M 340 158 L 340 178 Q 340 186 332 186 L 160 186 Q 152 186 152 194 L 152 212", type: "bypass", label: "Есть text/html", lx: 238, ly: 186, lw: 92 },
+    { id: "e_check_plain", d: "M 428 158 L 428 212", type: "normal", label: "Только text/plain", lx: 428, ly: 186, lw: 102 },
+    { id: "e_check_fallback", d: "M 565 129 L 679 129 Q 687 129 687 137 L 687 212", type: "normal", label: "Не пуст / INPUT", lx: 687, ly: 174, lw: 96 },
+    { id: "e_html_san", d: "M 152 276 L 152 316", type: "bypass", label: "Xoe.clean()", lx: 152, ly: 296, lw: 72 },
+    { id: "e_san_append", d: "M 152 380 L 152 420", type: "bypass", label: "iA(n, !0)", lx: 152, ly: 400, lw: 58 },
+    { id: "e_append_hoe", d: "M 152 484 L 152 528", type: "bypass", label: "<p> (1 TextNode)", lx: 152, ly: 506, lw: 96 },
+    { id: "e_append_handled", d: "M 38 453 L 24 453 Q 16 453 16 461 L 16 772 Q 16 780 24 780 L 134 780", type: "normal", label: "H1–H6, UL/OL", lx: 74, ly: 780, lw: 84 },
+    { id: "e_hoe_plain", d: "M 266 563 L 310 563", type: "bypass", label: "Hoe()", lx: 288, ly: 547, lw: 42 },
+    { id: "e_crlf_single", d: "M 428 276 L 428 316", type: "bug", label: "1 элемент (Win)", lx: 428, ly: 296, lw: 96 },
+    { id: "e_single_fallback", d: "M 550 349 L 679 349 Q 687 349 687 341 L 687 278", type: "bug", label: "Сброс (length=1)", lx: 626, ly: 349, lw: 100 },
+    { id: "e_single_plain", d: "M 428 380 L 428 528", type: "normal", label: "length > 1 (macOS/Linux)", lx: 428, ly: 453, lw: 136 },
+    { id: "e_plain_json", d: "M 360 596 L 360 613 Q 360 621 352 621 L 213 621 Q 205 621 205 629 L 205 644", type: "bypass", label: "[tool:{...}]", lx: 280, ly: 621, lw: 68 },
+    { id: "e_plain_h3", d: "M 464 596 L 464 644", type: "normal", label: "matchMarkdown", lx: 464, ly: 621, lw: 94 },
+    { id: "e_plain_text", d: "M 550 563 L 683 563 Q 691 563 691 571 L 691 644", type: "normal", label: "Иначе", lx: 691, ly: 604, lw: 48 },
+    { id: "e_json_end", d: "M 205 710 L 205 750", type: "bypass" },
+    { id: "e_h3_end", d: "M 464 710 L 464 750", type: "normal" },
+    { id: "e_text_end", d: "M 691 710 L 691 772 Q 691 780 683 780 L 666 780", type: "normal" }
+  ];
+
+  var SCENARIOS = {
+    all: { nodes: null, edges: null, defaultNode: "bypass_p_hoe" },
+    crlf: {
+      nodes: ["entry", "check_block", "bug_crlf", "bug_single", "fallback_default"],
+      edges: ["e_entry_check", "e_check_plain", "e_crlf_single", "e_single_fallback"],
+      defaultNode: "bug_crlf"
+    },
+    bypass: {
+      nodes: ["entry", "check_block", "html_prepare", "bug_sanitizer", "html_append", "bypass_p_hoe", "plain_part", "bypass_json", "end_blocks"],
+      edges: ["e_entry_check", "e_check_html", "e_html_san", "e_san_append", "e_append_hoe", "e_hoe_plain", "e_plain_json", "e_json_end"],
+      defaultNode: "bypass_p_hoe"
+    }
+  };
+
+  var svgNS = "http://www.w3.org/2000/svg";
+  var edgesLayer = document.getElementById("v1-edges-layer");
+  var nodesLayer = document.getElementById("v1-nodes-layer");
+
+  function el(tag, attrs, parent) {
+    var node = document.createElementNS(svgNS, tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { node.setAttribute(k, attrs[k]); });
+    if (parent) parent.appendChild(node);
+    return node;
+  }
+
+  var edgeElements = {};
+  EDGES.forEach(function (edge) {
+    var g = el("g", { class: "edge-group edge-" + edge.type }, edgesLayer);
+    var markerId = edge.type === "bug" ? "url(#v1-arrow-bug)" : edge.type === "bypass" ? "url(#v1-arrow-bypass)" : "url(#v1-arrow-default)";
+    el("path", { class: "edge-path", d: edge.d, "marker-end": markerId }, g);
+    if (edge.label) {
+      el("rect", { class: "edge-label-bg", x: edge.lx - edge.lw / 2, y: edge.ly - 8.5, width: edge.lw, height: 17 }, g);
+      var txt = el("text", { class: "edge-label-text", x: edge.lx, y: edge.ly + 3.5, "text-anchor": "middle" }, g);
+      txt.textContent = edge.label;
+    }
+    edgeElements[edge.id] = g;
+  });
+
+  var nodeElements = {}, nodeById = {};
+  NODES.forEach(function (n) {
+    nodeById[n.id] = n;
+    var g = el("g", { class: "node-group cat-" + n.category, tabindex: "0", role: "button", "aria-label": n.label + " — " + n.sublabel }, nodesLayer);
+    el("rect", { class: "node-rect", x: n.x, y: n.y, width: n.w, height: n.h }, g);
+    var cx = n.x + n.w / 2;
+    var titleY = n.badge ? n.y + 30 : n.y + n.h / 2 - 4;
+    var subY = n.badge ? n.y + 47 : n.y + n.h / 2 + 13;
+    if (n.badge) {
+      var bw = n.badge.length * 6.4 + 14;
+      el("rect", { class: "node-badge-bg cat-" + n.category, x: n.x + 10, y: n.y - 8, width: bw, height: 16, rx: 4, ry: 4 }, g);
+      var btxt = el("text", { class: "node-badge-text" + (n.category === "bypass" ? " dark-ink" : ""), x: n.x + 10 + bw / 2, y: n.y + 3.2, "text-anchor": "middle" }, g);
+      btxt.textContent = n.badge;
+    }
+    var titleEl = el("text", { class: "node-title", x: cx, y: titleY, "text-anchor": "middle" }, g);
+    titleEl.textContent = n.label;
+    var subEl = el("text", { class: "node-sub", x: cx, y: subY, "text-anchor": "middle" }, g);
+    subEl.textContent = n.sublabel;
+    g.addEventListener("click", function () { selectNode(n.id); });
+    g.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectNode(n.id); } });
+    nodeElements[n.id] = g;
+  });
+
+  var insBadge = document.getElementById("v1-ins-badge");
+  var insTitle = document.getElementById("v1-ins-title");
+  var insSub = document.getElementById("v1-ins-sub");
+  var insDesc = document.getElementById("v1-ins-desc");
+  var insCode = document.getElementById("v1-ins-code");
+  var insTip = document.getElementById("v1-ins-tip");
+  var activeNodeId = null;
+
+  function selectNode(id) {
+    var n = nodeById[id];
+    if (!n) return;
+    if (activeNodeId && nodeElements[activeNodeId]) nodeElements[activeNodeId].classList.remove("selected");
+    activeNodeId = id;
+    nodeElements[id].classList.add("selected");
+    insBadge.className = "inspector-badge badge-" + n.category;
+    insBadge.textContent = n.badge || CATEGORY_LABELS[n.category] || n.category;
+    insTitle.textContent = n.label;
+    insSub.textContent = n.sublabel;
+    insDesc.textContent = n.details;
+    insCode.className = "inspector-code" + (n.category === "bug" ? " code-bug" : n.category === "bypass" ? " code-bypass" : "");
+    insCode.textContent = n.code;
+    insTip.textContent = n.tip;
+  }
+
+  var scenarioBtns = document.querySelectorAll(".v1-wrap .scenario-btn");
+  function applyScenario(key) {
+    var cfg = SCENARIOS[key] || SCENARIOS.all;
+    scenarioBtns.forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-scenario") === key); });
+    NODES.forEach(function (n) { nodeElements[n.id].classList.toggle("dimmed", cfg.nodes !== null && cfg.nodes.indexOf(n.id) === -1); });
+    EDGES.forEach(function (e) { edgeElements[e.id].classList.toggle("dimmed", cfg.edges !== null && cfg.edges.indexOf(e.id) === -1); });
+    if (cfg.defaultNode) selectNode(cfg.defaultNode);
+  }
+  scenarioBtns.forEach(function (b) { b.addEventListener("click", function () { applyScenario(b.getAttribute("data-scenario")); }); });
+  applyScenario("all");
+})();
+
+// ==================== VISUAL 2: COMPATIBILITY MATRIX ====================
+(function () {
+  var STATUS_META = {
+    native: { label: 'Нативно', color: 'var(--st-native-dot)' },
+    workaround: { label: 'JSON-мост', color: 'var(--st-workaround-dot)' },
+    degrade: { label: 'Деградация', color: 'var(--st-degrade-dot)' },
+    broken: { label: 'Ломается / Нет', color: 'var(--st-broken-dot)' },
+    verify: { label: 'Проверить', color: 'var(--st-verify-dot)' }
+  };
+
+  var COLUMNS = [
+    { id: 'vcPlain', title: 'vc.ru (text/plain)', sub: 'Windows / CRLF' },
+    { id: 'vcHtml', title: 'vc.ru (HTML-мост)', sub: 'HTML + JSON-блоки' },
+    { id: 'dzen', title: 'Дзен', sub: 'HTML (справка)' },
+    { id: 'smartlab', title: 'Смартлаб', sub: 'HTML / TinyMCE' }
+  ];
+
+  var ROWS = [
+    { name: 'Заголовок H2', syntax: '## Заголовок', cells: {
+      vcPlain: { status: 'degrade', short: 'Баг CRLF', rule: 'Регулярка <code>Sb.markdown</code> (<code>/^#+\\s+\\S/</code>) распознаёт <code>## </code>, но на Windows Chromium добавляет <code>\\r\\n</code> в <code>text/plain</code>, ломая разбиение многострочной вставки.' },
+      vcHtml: { status: 'native', short: 'Нативно', rule: '<code>Sb.handleTags</code> нативно перехватывает <code>&lt;h2&gt;</code> и создаёт блок <code>header</code> со <code>style: "h2"</code>. Внутренние теги очищаются при сохранении.' },
+      dzen: { status: 'native', short: 'Нативно', rule: 'Подзаголовок 2-го уровня поддерживается редактором Дзена нативно и автоматически включается в оглавление статьи.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'TinyMCE поддерживает <code>&lt;h2&gt;</code>, но открытой документации санитайзера LiveStreet на Смартлабе нет — нужно проверить сохранение тега в черновике.' }
+    }},
+    { name: 'Заголовок H3', syntax: '### Подзаголовок', cells: {
+      vcPlain: { status: 'degrade', short: 'Сброс в H2', rule: 'Метод <code>Sb.markdown.parseFrom()</code> удаляет все ведущие <code>#</code> и жёстко возвращает <code>{ style: "h2" }</code> — уровень H3 при вставке из <code>text/plain</code> теряется.' },
+      vcHtml: { status: 'native', short: 'Нативно', rule: '<code>Sb.handleTags.pasteParser</code> читает <code>tagName.toLowerCase()</code> и корректно создаёт блок <code>header</code> со <code>style: "h3"</code>.' },
+      dzen: { status: 'native', short: 'Нативно', rule: 'Подзаголовок 3-го уровня поддерживается Дзеном нативно и участвует в автогенерации оглавления.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'Требуется проверка в DevTools: пропускает ли серверный фильтр LiveStreet тег <code>&lt;h3&gt;</code> или сбрасывает его в обычный абзац.' }
+    }},
+    { name: 'Заголовки H4–H6', syntax: '#### Уровень 4–6', cells: {
+      vcPlain: { status: 'degrade', short: 'Сброс в H2', rule: 'Парсер <code>Sb.markdown</code> перехватывает любое число <code>#</code> и принудительно превращает заголовок в <code>h2</code>.' },
+      vcHtml: { status: 'degrade', short: 'В H3 / жирный', rule: 'В интерфейсе и API vc.ru предусмотрены только <code>h2</code> и <code>h3</code>. Адаптер должен понижать H4–H6 до <code>&lt;h3&gt;</code> или <code>&lt;p&gt;&lt;b&gt;...&lt;/b&gt;&lt;/p&gt;</code>.' },
+      dzen: { status: 'degrade', short: 'В H3 / жирный', rule: 'Справка Дзена описывает только подзаголовки H2 и H3. Адаптер должен деградировать H4–H6 в <code>&lt;h3&gt;</code> или полужирный абзац.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'Нет публичных данных о поддержке <code>&lt;h4&gt;–&lt;h6&gt;</code> в <code>lseditor</code>. Проверьте в черновике или заранее преобразуйте в <code>&lt;p&gt;&lt;b&gt;</code>.' }
+    }},
+    { name: 'Жирный / Курсив', syntax: '**b** / *i*', cells: {
+      vcPlain: { status: 'broken', short: 'Сырой MD', rule: 'Текстовый инструмент <code>ru</code> не имеет Markdown-парсера <code>parseFrom</code> — звёздочки <code>**...**</code> и <code>*...*</code> вставляются буквально.' },
+      vcHtml: { status: 'native', short: 'Нативно', rule: 'Теги <code>&lt;b&gt;</code> и <code>&lt;i&gt;</code> явно разрешены в <code>nl.prototype.sanitize</code> (внутри JSON-моста). Рекомендуется нормализовать <code>&lt;strong&gt;</code> → <code>&lt;b&gt;</code> и <code>&lt;em&gt;</code> → <code>&lt;i&gt;</code>.' },
+      dzen: { status: 'native', short: 'Нативно', rule: 'Полужирный шрифт и курсив входят в базовую панель форматирования редактора статей Дзена.' },
+      smartlab: { status: 'native', short: 'Нативно', rule: 'Полужирный (<code>Ctrl+B</code>) и курсив (<code>Ctrl+I</code>) подтверждены на панели инструментов визуального редактора <code>lseditor</code>.' }
+    }},
+    { name: 'Зачёркнутый', syntax: '~~текст~~', cells: {
+      vcPlain: { status: 'broken', short: 'Нет в редакторе', rule: 'Синтаксис <code>~~...~~</code> не парсится, а тег <code>&lt;s&gt;</code> отсутствует в белом списке санитайзера CodeX Editor.' },
+      vcHtml: { status: 'degrade', short: 'Тег вырезается', rule: 'Санитайзер <code>nl.prototype.sanitize</code> разрешает только <code>a, b, i, p, mark, br</code>; теги <code>&lt;s&gt;</code>/<code>&lt;del&gt;</code> удаляются с сохранением текста.' },
+      dzen: { status: 'native', short: 'Нативно', rule: 'Зачёркнутый шрифт официально поддерживается всплывающим тулбаром редактора статей Дзена.' },
+      smartlab: { status: 'native', short: 'Нативно', rule: 'Кнопка «Зачеркнутый» присутствует непосредственно на панели инструментов <code>lseditor</code> (TinyMCE).' }
+    }},
+    { name: 'Ссылки', syntax: '[текст](url)', cells: {
+      vcPlain: { status: 'broken', short: 'Сырой MD', rule: 'Markdown-ссылки в <code>text/plain</code> не конвертируются в гиперссылки и остаются в виде квадратных и круглых скобок.' },
+      vcHtml: { status: 'native', short: 'Нативно', rule: 'Тег <code>&lt;a href="..."&gt;</code> разрешён санитайзером; редактор автоматически добавляет <code>target="_blank"</code> и <code>rel="nofollow noreferrer noopener"</code>.' },
+      dzen: { status: 'native', short: 'Нативно', rule: 'Гиперссылки поддерживаются в теле статьи (ограничение платформы: ссылки запрещены в заголовке статьи).' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'TinyMCE поддерживает <code>&lt;a href&gt;</code>, но серверный фильтр Смартлаба очищает атрибуты (<code>id</code>, <code>class</code>) — стоит проверить итоговый HTML ссылки.' }
+    }},
+    { name: 'Перенос строки', syntax: '<br> / Shift+Enter', cells: {
+      vcPlain: { status: 'broken', short: 'Баг CRLF', rule: 'На Windows Chromium заменяет <code>\\n</code> на <code>\\r\\n</code> в буфере <code>text/plain</code> (баг #40873740), что ломает разбиение абзацев и переносов.' },
+      vcHtml: { status: 'native', short: 'Нативно', rule: 'Тег <code>&lt;br&gt;</code> явно включён в белый список <code>nl.prototype.sanitize</code> и корректно работает внутри абзацев при передаче через JSON-мост.' },
+      dzen: { status: 'native', short: 'Нативно', rule: 'Внутри абзаца <code>&lt;br&gt;</code> воспринимается штатно, а для логических абзацев адаптер должен генерировать отдельные <code>&lt;p&gt;</code>.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'Нужно проверить в DevTools, сохраняет ли <code>lseditor</code> теги <code>&lt;br&gt;</code> при вставке или преобразует их в отдельные абзацы.' }
+    }},
+    { name: 'Плоские списки', syntax: '- пункт / 1. пункт', cells: {
+      vcPlain: { status: 'broken', short: 'Нет парсера', rule: 'У инструмента <code>oa</code> (List Tool) нет свойства <code>markdown.parseFrom</code> — маркеры <code>- </code> и <code>1. </code> вставляются как обычный текст.' },
+      vcHtml: { status: 'native', short: 'Нативно', rule: '<code>oa.handleTags</code> перехватывает <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code> и формирует блок <code>list</code> (<code>UL</code> / <code>OL</code>) с массивом <code>items</code>.' },
+      dzen: { status: 'native', short: 'Нативно', rule: 'Маркированные и нумерованные списки входят в поддерживаемые типы блоков редактора Дзена.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'TinyMCE поддерживает <code>&lt;ul&gt;</code>/<code>&lt;ol&gt;</code>, но нужно проверить сохранение списка серверным санитайзером LiveStreet.' }
+    }},
+    { name: 'Вложенные списки', syntax: '  - подпункт', cells: {
+      vcPlain: { status: 'broken', short: 'Нет вложения', rule: 'Нет Markdown-парсера списков и нет вложенности в модели <code>oa</code>; подпункты остаются простым текстом.' },
+      vcHtml: { status: 'degrade', short: 'В плоский', rule: 'Схема блока <code>list</code> хранит плоский массив <code>items: string[]</code>, а санитайзер вырезает вложенные <code>&lt;ul&gt;</code>. Адаптер должен сплющивать уровни (например, с префиксом <code>— </code>).' },
+      dzen: { status: 'degrade', short: 'В плоский', rule: 'Официальная справка Дзена документирует только одноуровневые списки; вложенные уровни безопаснее разворачивать в плоский список.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'Поведение вложенных <code>&lt;ul&gt;</code>/<code>&lt;ol&gt;</code> после санитайзера LiveStreet не документировано — требуется живая проверка.' }
+    }},
+    { name: 'Цитата', syntax: '> цитата', cells: {
+      vcPlain: { status: 'broken', short: 'Нет парсера', rule: 'Префикс <code>&gt; </code> не имеет Markdown-обработчика в <code>text/plain</code> и вставляется как обычная строка.' },
+      vcHtml: { status: 'workaround', short: 'JSON-блок', rule: 'Передаётся через HTML-мост как одиночный абзац <code>&lt;p&gt;[quote:{"text":"...","subline1":""}]&lt;/p&gt;</code> — редактор рендерит штатный блок <code>Ak</code>.' },
+      dzen: { status: 'native', short: 'Нативно', rule: 'Блок «Цитата» нативно поддерживается редактором Дзена и принимается через стандартный тег <code>&lt;blockquote&gt;</code>.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'Требуется проверить в DevTools, пропускает ли санитайзер Смартлаба тег <code>&lt;blockquote&gt;</code> при вставке и публикации.' }
+    }},
+    { name: 'Callouts (врезки)', syntax: '> [!note]', cells: {
+      vcPlain: { status: 'broken', short: 'Нет парсера', rule: 'Синтаксис Obsidian Callouts не распознаётся в <code>text/plain</code> и вставляется сырым текстом с <code>[!note]</code>.' },
+      vcHtml: { status: 'workaround', short: 'JSON quote', rule: 'В коде vc.ru блоки <code>incut</code> маппятся в <code>quote</code> (<code>convertSpecificBlocksIntoQuote</code>). Адаптер собирает <code>&lt;p&gt;[quote:{"text":"\\u003cb\\u003eЗаголовок\\u003c/b\\u003e\\u003cbr\\u003e...","subline1":""}]&lt;/p&gt;</code>.' },
+      dzen: { status: 'degrade', short: 'В цитату', rule: 'Отдельного блока врезки в Дзене нет. Адаптер деградирует callout в <code>&lt;blockquote&gt;</code> с жирным заголовком типа заметки.' },
+      smartlab: { status: 'degrade', short: 'В цитату / b', rule: 'Obsidian Callouts требуют препроцессинга: конвертация в <code>&lt;blockquote&gt;</code> или абзац с <code>&lt;b&gt;</code> (с предварительной проверкой <code>&lt;blockquote&gt;</code> в DevTools).' }
+    }},
+    { name: 'Блок кода', syntax: '```js ... ```', cells: {
+      vcPlain: { status: 'broken', short: 'Нет парсера', rule: 'Ограждённые блоки с тройными бэктиками не парсятся через <code>text/plain</code>.' },
+      vcHtml: { status: 'workaround', short: 'JSON code', rule: 'Передаётся как <code>&lt;p&gt;[code:{"text":"...","lang":"js","lineWrapping":true}]&lt;/p&gt;</code>, что создаёт штатный блок <code>yK</code> с подсветкой языка.' },
+      dzen: { status: 'degrade', short: 'В цитату / текст', rule: 'Блоки кода отсутствуют в списке поддерживаемых элементов Дзена. Деградация: оформление в <code>&lt;blockquote&gt;</code> или вставка скриншотом.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'Нужно проверить в DevTools, разрешены ли теги <code>&lt;pre&gt;</code> и <code>&lt;code&gt;</code> в белом списке санитайзера Смартлаба.' }
+    }},
+    { name: 'Разделитель', syntax: '---', cells: {
+      vcPlain: { status: 'broken', short: 'Нет парсера', rule: 'Строка <code>---</code> в <code>text/plain</code> не преобразуется в блок разделителя и остаётся дефисами.' },
+      vcHtml: { status: 'workaround', short: 'JSON delimiter', rule: 'Передаётся через HTML-мост как <code>&lt;p&gt;[delimiter:{"type":"default"}]&lt;/p&gt;</code> и рендерится компонентом <code>SK</code>.' },
+      dzen: { status: 'degrade', short: 'Текст * * *', rule: 'Горизонтальный разделитель не указан среди поддерживаемых блоков Дзена. Адаптер заменяет его на <code>&lt;p&gt;* * *&lt;/p&gt;</code>.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'Проверить в черновике, сохраняет ли санитайзер Смартлаба тег <code>&lt;hr&gt;</code> или его лучше заменять на текстовую отбивку.' }
+    }},
+    { name: 'Таблицы', syntax: '| col1 | col2 |', cells: {
+      vcPlain: { status: 'broken', short: 'Нет блока', rule: 'В CodeX Editor на vc.ru отсутствует инструмент таблиц; в <code>text/plain</code> вставляется сырой текст с вертикальными чертами.' },
+      vcHtml: { status: 'degrade', short: 'В список / код', rule: 'Поддержки таблиц в vc.ru нет (неподдерживаемые блоки падают в заглушку <code>np</code>). Адаптер деградирует таблицу в маркированный список или блок <code>[code:...]</code>.' },
+      dzen: { status: 'degrade', short: 'В список / PNG', rule: 'Таблицы не входят в поддерживаемые типы блоков Дзена. Деградация: перевод строк в список вида «Параметр: значение» или экспорт в картинку.' },
+      smartlab: { status: 'verify', short: 'В DevTools', rule: 'TinyMCE умеет работать с <code>&lt;table&gt;</code>, но LiveStreet может вырезать табличные теги или атрибуты — нужна живая проверка.' }
+    }},
+    { name: 'Локальные картинки', syntax: '![[img.png]]', cells: {
+      vcPlain: { status: 'broken', short: 'Нет доступа', rule: 'Внутренняя ссылка Obsidian не переносится как текст; редактор vc.ru требует загрузку файла (<code>ra.handleFiles</code>) или <code>uuid</code> через API.' },
+      vcHtml: { status: 'broken', short: 'Ручная загрузка', rule: 'Браузер блокирует локальные пути <code>file://</code> при HTML-вставке. Нужна либо ручная вставка бинарного файла, либо загрузка через <code>POST /v2.1/editor</code> с получением <code>uuid</code>.' },
+      dzen: { status: 'broken', short: 'Загрузка / URL', rule: 'Дзен принимает изображения загрузкой с ПК или по публичной ссылке (ширина ≥ 300px, до 30 МБ). Локальные вложения Obsidian нужно подгружать отдельно.' },
+      smartlab: { status: 'broken', short: 'Ручная загрузка', rule: 'Локальные файлы Obsidian не переносятся через HTML-буфер обмена — требуется загрузка изображений средствами редактора Смартлаба.' }
+    }}
+  ];
+
+  var activeFilter = 'all';
+  var selected = { row: 11, col: 'vcHtml' };
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function countStatuses() {
+    var counts = { all: 0, native: 0, workaround: 0, degrade: 0, broken: 0, verify: 0 };
+    ROWS.forEach(function (r) { COLUMNS.forEach(function (c) { counts.all++; counts[r.cells[c.id].status]++; }); });
+    return counts;
+  }
+  function countByColumn(colId) {
+    var counts = { native: 0, workaround: 0, degrade: 0, broken: 0, verify: 0 };
+    ROWS.forEach(function (r) { counts[r.cells[colId].status]++; });
+    return counts;
+  }
+
+  function renderToolbar() {
+    var toolbar = document.getElementById('v2-toolbar');
+    var counts = countStatuses();
+    var items = [
+      { key: 'all', label: 'Все', dot: null },
+      { key: 'native', label: 'Нативно', dot: 'dot-native' },
+      { key: 'workaround', label: 'JSON-мост', dot: 'dot-workaround' },
+      { key: 'degrade', label: 'Деградация', dot: 'dot-degrade' },
+      { key: 'broken', label: 'Ломается / Нет', dot: 'dot-broken' },
+      { key: 'verify', label: 'Проверить', dot: 'dot-verify' }
+    ];
+    toolbar.innerHTML = items.map(function (item) {
+      return '<button type="button" class="filter-btn ' + (activeFilter === item.key ? 'is-active' : '') + '" data-filter="' + item.key + '" aria-pressed="' + (activeFilter === item.key) + '">' +
+        (item.dot ? '<span class="dot ' + item.dot + '"></span>' : '') +
+        '<span>' + item.label + '</span><span class="filter-count">' + counts[item.key] + '</span></button>';
+    }).join('');
+    toolbar.querySelectorAll('.filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeFilter = btn.dataset.filter;
+        renderToolbar();
+        updateDimming();
+      });
+    });
+  }
+
+  function renderMatrix() {
+    var matrix = document.getElementById('v2-matrix');
+    var totalRows = ROWS.length;
+    var order = ['native', 'workaround', 'degrade', 'broken', 'verify'];
+    var headHtml = '<div class="matrix-head" role="row"><div class="head-cell" role="columnheader"><div class="head-title">Элемент Obsidian</div><div class="head-sub">Синтаксис Markdown</div></div>' +
+      COLUMNS.map(function (col) {
+        var colCounts = countByColumn(col.id);
+        var segs = order.map(function (st) {
+          var pct = (colCounts[st] / totalRows) * 100;
+          return pct > 0 ? '<span class="mini-bar-seg" style="width:' + pct.toFixed(2) + '%;background:' + STATUS_META[st].color + ';" title="' + STATUS_META[st].label + ': ' + colCounts[st] + '"></span>' : '';
+        }).join('');
+        return '<div class="head-cell" role="columnheader"><div><div class="head-title">' + col.title + '</div><div class="head-sub">' + col.sub + '</div></div><div class="mini-bar" aria-hidden="true">' + segs + '</div></div>';
+      }).join('') + '</div>';
+
+    var rowsHtml = ROWS.map(function (row, rowIdx) {
+      return '<div class="matrix-row" role="row"><div class="el-cell" role="rowheader"><span class="el-name">' + row.name + '</span><span class="el-syntax">' + escapeHtml(row.syntax) + '</span></div>' +
+        COLUMNS.map(function (col) {
+          var cell = row.cells[col.id];
+          var isSel = selected.row === rowIdx && selected.col === col.id;
+          var isDim = activeFilter !== 'all' && cell.status !== activeFilter;
+          return '<button type="button" class="status-cell ' + (isSel ? 'is-selected' : '') + ' ' + (isDim ? 'is-dimmed' : '') + '" data-row="' + rowIdx + '" data-col="' + col.id + '" data-status="' + cell.status + '" role="gridcell">' +
+            '<span class="mobile-col-label">' + col.title + '</span><span class="badge badge-' + cell.status + '">' + cell.short + '</span></button>';
+        }).join('') + '</div>';
+    }).join('');
+
+    matrix.innerHTML = headHtml + rowsHtml;
+    matrix.querySelectorAll('.status-cell').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        selected = { row: Number(btn.dataset.row), col: btn.dataset.col };
+        updateSelection();
+        renderInspector();
+      });
+      btn.addEventListener('mouseenter', function () {
+        renderInspector(Number(btn.dataset.row), btn.dataset.col);
+      });
+    });
+    matrix.addEventListener('mouseleave', function () { renderInspector(selected.row, selected.col); });
+  }
+
+  function updateDimming() {
+    document.querySelectorAll('#v2-matrix .status-cell').forEach(function (btn) {
+      btn.classList.toggle('is-dimmed', activeFilter !== 'all' && btn.dataset.status !== activeFilter);
+    });
+  }
+  function updateSelection() {
+    document.querySelectorAll('#v2-matrix .status-cell').forEach(function (btn) {
+      btn.classList.toggle('is-selected', Number(btn.dataset.row) === selected.row && btn.dataset.col === selected.col);
+    });
+  }
+  function renderInspector(rowIdx, colId) {
+    if (rowIdx === undefined) rowIdx = selected.row;
+    if (colId === undefined) colId = selected.col;
+    var inspector = document.getElementById('v2-inspector');
+    var row = ROWS[rowIdx];
+    var col = COLUMNS.find(function (c) { return c.id === colId; });
+    var cell = row.cells[colId];
+    var meta = STATUS_META[cell.status];
+    inspector.innerHTML =
+      '<div class="inspector-top"><div class="inspector-meta"><span>' + row.name + '</span><span class="inspector-syntax">' + escapeHtml(row.syntax) + '</span><span class="inspector-sep">→</span><span>' + col.title + '</span></div>' +
+      '<span class="inspector-pill badge-' + cell.status + '"><span class="dot dot-' + cell.status + '"></span><span>' + meta.label + ': ' + cell.short + '</span></span></div>' +
+      '<div class="inspector-rule">' + cell.rule + '</div>' +
+      '<div class="inspector-hint">Наведите или нажмите на любую ячейку матрицы, чтобы увидеть правило конвертации для плагина.</div>';
+  }
+
+  renderToolbar();
+  renderMatrix();
+  renderInspector();
+})();
+</script>
+</body>
+</html>
