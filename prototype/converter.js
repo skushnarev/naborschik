@@ -528,7 +528,8 @@
       case "quote":
         return "<blockquote>" + block.html + "</blockquote>";
       case "code":
-        return "<pre><code>" + escapeHtml(block.text) + "</code></pre>";
+        // Смартлаб показывает code внутри pre тегами текстом.
+        return "<pre>" + escapeHtml(block.text) + "</pre>";
       case "table":
         return renderTableHtml(block);
       case "delimiter":

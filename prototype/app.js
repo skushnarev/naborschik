@@ -253,9 +253,10 @@
       n: 19,
       name: "Смартлаб: код",
       input: "~~~js\nconst x = 1;\n~~~",
-      expect: "pre и code",
+      expect: "pre без code",
       check: function (blocks, payload, outputs) {
-        return outputs.smartlab === "<pre><code>const x = 1;</code></pre>";
+        return outputs.smartlab === "<pre>const x = 1;</pre>" &&
+          outputs.smartlab.indexOf("<code>") === -1;
       }
     },
     {
@@ -335,7 +336,7 @@
       return "В Дзене вставь HTML в визуальный редактор. Код станет цитатой, таблица списком, разделитель текстом. Картинки загрузи руками.";
     }
     if (state.platform === "smartlab") {
-      return "В Смартлабе вставь HTML в визуальный редактор. Если pre, table или hr вырежет санитайзер, напиши: деградируем их как у Дзена.";
+      return "В Смартлабе вставь HTML в визуальный редактор. Санитайзер оставляет pre, table и hr. Заголовки в предпросмотре выглядят сломанными, проверь по опубликованному черновику.";
     }
     return "В черновике vc.ru поставь курсор в <strong>пустой текстовый блок</strong> и вставь. Если курсор стоит в другом блоке, vc.ru склеит всё в один. Один блок уходит обычным текстом: это ограничение площадки. Картинки остаются строками <code>![[...]]</code> и меняются руками.";
   }
@@ -384,7 +385,7 @@
       messages.push("Дзен: код станет цитатой, таблица списком, разделитель текстом. Проверь в черновике.");
     }
     if (state.platform === "smartlab" && hasSpecialBlocks(blocks)) {
-      messages.push("Смартлаб: pre, table и hr могут не выжить после санитайзера. Проверь в черновике.");
+      messages.push("Смартлаб: код уходит как pre без code. Заголовки в предпросмотре могут выглядеть сломанными, проверь публикацию.");
     }
     notice.hidden = messages.length === 0;
     notice.textContent = messages.join(" ");

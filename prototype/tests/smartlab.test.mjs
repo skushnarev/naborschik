@@ -31,11 +31,12 @@ test("Смартлаб: цитата становится blockquote", () => {
   assert.equal(smartlab("> Цитата"), "<blockquote><p>Цитата</p></blockquote>");
 });
 
-test("Смартлаб: код становится pre и code", () => {
-  assert.equal(
-    smartlab("~~~js\nconst x = 1;\nconst y = 2;\n~~~"),
-    "<pre><code>const x = 1;\nconst y = 2;</code></pre>"
-  );
+test("Смартлаб: код становится pre без вложенного code", () => {
+  const html = smartlab("~~~js\nconst x = 1;\nconst y = 2;\n~~~");
+
+  assert.equal(html, "<pre>const x = 1;\nconst y = 2;</pre>");
+  assert.ok(!html.includes("<code>"));
+  assert.ok(!html.includes("</code>"));
 });
 
 test("Смартлаб: таблица становится table", () => {
@@ -52,7 +53,7 @@ test("Смартлаб: разделитель становится hr", () => {
 test("Смартлаб: код экранирует html", () => {
   const html = smartlab("~~~\n<script>alert(1)</script>\n~~~");
 
-  assert.equal(html, "<pre><code>&lt;script&gt;alert(1)&lt;/script&gt;</code></pre>");
+  assert.equal(html, "<pre>&lt;script&gt;alert(1)&lt;/script&gt;</pre>");
   assert.ok(!html.includes("<script>"));
 });
 
