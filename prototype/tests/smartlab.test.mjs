@@ -11,8 +11,11 @@ const C = require(join(here, "..", "converter.js"));
 
 const smartlab = (markdown) => C.toSmartlabHtml(C.toBlocks(markdown));
 
-test("Смартлаб: H2 и H3 остаются заголовками", () => {
-  assert.equal(smartlab("## Глава\n\n### Раздел"), "<h2>Глава</h2>\n<h3>Раздел</h3>");
+test("Смартлаб: H2 и H3 отдаются как h3", () => {
+  const html = smartlab("## Глава\n\n### Раздел");
+
+  assert.equal(html, "<h3>Глава</h3>\n<h3>Раздел</h3>");
+  assert.ok(!html.includes("<h2>"));
 });
 
 test("Смартлаб: абзац сохраняет инлайн-разметку", () => {

@@ -520,7 +520,8 @@
   function smartlabBlockToHtml(block) {
     switch (block.type) {
       case "header":
-        return "<" + block.style + ">" + escapeHtml(block.text) + "</" + block.style + ">";
+        // Смартлаб вырезает h2 и оставляет голый текст. Штатный заголовок площадки h3.
+        return "<h3>" + escapeHtml(block.text) + "</h3>";
       case "text":
         return block.html;
       case "list":

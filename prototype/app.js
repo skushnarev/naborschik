@@ -282,6 +282,16 @@
     },
     {
       n: 22,
+      name: "Смартлаб: заголовки",
+      input: "## Глава\n\n### Раздел",
+      expect: "оба уровня как h3, без h2",
+      check: function (blocks, payload, outputs) {
+        return outputs.smartlab === "<h3>Глава</h3>\n<h3>Раздел</h3>" &&
+          outputs.smartlab.indexOf("<h2>") === -1;
+      }
+    },
+    {
+      n: 23,
       name: "HTML: экранирование",
       input: "~~~\n<script>alert(1)</script>\n~~~",
       expect: "теги кода экранированы в обоих выходах",
