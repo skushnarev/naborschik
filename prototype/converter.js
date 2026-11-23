@@ -430,9 +430,73 @@
     return blocks.map(serializeBlock).join("\n\n");
   }
 
+  function renderListHtml(block) {
+    var tag = block.listType === "OL" ? "ol" : "ul";
+    var items = (block.items || []).map(function (item) {
+      return "<li>" + item + "</li>";
+    });
+    if (!items.length) return "";
+    return "<" + tag + ">\n" + items.join("\n") + "\n</" + tag + ">";
+  }
+
+  function renderTableAsList(block) {
+    var headers = block.headers || [];
+    var rows = block.rows || [];
+    var items = [];
+
+    rows.forEach(function (row) {
+      var pairs = [];
+      for (var index = 0; index < headers.length; index += 1) {
+        var label = headers[index] != null ? headers[index] : "";
+        var value = row[index] != null ? row[index] : "";
+        pairs.push("<b>" + label + ":</b>" + (value ? " " + value : ""));
+      }
+      if (pairs.length) items.push("<li>" + pairs.join("; ") + "</li>");
+    });
+
+    if (!items.length) return "";
+    return "<ul>\n" + items.join("\n") + "\n</ul>";
+  }
+
+  function textLinesToHtml(text) {
+    return escapeHtml(String(text)).replace(/\n/g, "<br>");
+  }
+
+  function dzenBlockToHtml(block) {
+    switch (block.type) {
+      case "header":
+        return "<" + block.style + ">" + escapeHtml(block.text) + "</" + block.style + ">";
+      case "text":
+        return block.html;
+      case "list":
+        return renderListHtml(block);
+      case "quote":
+        return "<blockquote>" + block.html + "</blockquote>";
+      case "code":
+        return "<blockquote><p>" + textLinesToHtml(block.text) + "</p></blockquote>";
+      case "table":
+        return renderTableAsList(block);
+      case "delimiter":
+        return "<p>* * *</p>";
+      default:
+        return "";
+    }
+  }
+
+  /**
+   * Блоки в HTML для редактора Дзена.
+   * @param {Block[]} blocks
+   * @returns {string}
+   */
+  function toDzenHtml(blocks) {
+    if (!blocks || !blocks.length) return "";
+    return blocks.map(dzenBlockToHtml).filter(Boolean).join("\n");
+  }
+
   var api = {
     toBlocks: toBlocks,
     toVcruPayload: toVcruPayload,
+    toDzenHtml: toDzenHtml,
     preprocess: preprocess,
     htmlToText: htmlToText,
     escapeHtml: escapeHtml
