@@ -550,10 +550,36 @@
     if (block.type === "quote") return { text: block.html, subline1: block.subline1 || "" };
     if (block.type === "code") return { text: block.text, lang: block.lang || "", lineWrapping: false };
     if (block.type === "table") return { text: block.raw, lang: "", lineWrapping: false };
+    if (block.type === "image") {
+      return {
+        type: "image",
+        src: block.src.length > 60 ? block.src.slice(0, 60) + "..." : block.src,
+        alt: block.alt,
+        width: block.width,
+        raw: block.raw,
+        media: block.media ? {
+          uuid: block.media.uuid,
+          width: block.media.width,
+          height: block.media.height,
+          size: block.media.size,
+          type: block.media.type,
+          color: block.media.color
+        } : null
+      };
+    }
     return { type: "default" };
   }
 
   function fillPreview(container, block) {
+    if (block.type === "image") {
+      var img = document.createElement("img");
+      img.className = "image-preview";
+      img.src = block.src;
+      img.alt = block.alt;
+      if (block.width) img.width = block.width;
+      container.appendChild(img);
+      return;
+    }
     if (block.type === "text" || block.type === "quote") {
       container.innerHTML = block.html;
       return;
