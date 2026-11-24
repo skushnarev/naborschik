@@ -15,8 +15,9 @@
   /** @typedef {{type: "quote", html: string, subline1: string}} QuoteBlock */
   /** @typedef {{type: "code", text: string, lang: string, lineWrapping: boolean}} CodeBlock */
   /** @typedef {{type: "table", headers: string[], rows: string[][], align: Array<string|null>, raw: string}} TableBlock */
+  /** @typedef {{type: "image", src: string, alt: string, width: number|null, raw: string}} ImageBlock */
   /** @typedef {{type: "delimiter"}} DelimiterBlock */
-  /** @typedef {HeaderBlock | TextBlock | ListBlock | QuoteBlock | CodeBlock | TableBlock | DelimiterBlock} Block */
+  /** @typedef {HeaderBlock | TextBlock | ListBlock | QuoteBlock | CodeBlock | TableBlock | ImageBlock | DelimiterBlock} Block */
 
   var LANG_ALIASES = {
     js: "javascript",
@@ -40,9 +41,11 @@
   }
 
   var placeholders = [];
+  var imageTokens = [];
 
   function resetPlaceholders() {
     placeholders = [];
+    imageTokens = [];
   }
 
   function placeholder(value) {
@@ -51,11 +54,28 @@
     return "@@NABORSCHIK_" + index + "@@";
   }
 
+  function imagePlaceholder(image) {
+    var index = imageTokens.length;
+    imageTokens.push(image);
+    return "@@NABORSCHIK_IMG_" + index + "@@";
+  }
+
+  function imageFromToken(text) {
+    var match = String(text || "").trim().match(/^@@NABORSCHIK_IMG_(\d+)@@$/);
+    if (!match) return null;
+    return imageTokens[Number(match[1])] || null;
+  }
+
   function restorePlaceholders(html) {
-    return html.replace(/@@NABORSCHIK_(\d+)@@/g, function (_, index) {
-      var value = placeholders[Number(index)];
-      return value === undefined ? "" : escapeHtml(value);
-    });
+    return String(html)
+      .replace(/@@NABORSCHIK_IMG_(\d+)@@/g, function (_, index) {
+        var image = imageTokens[Number(index)];
+        return image ? escapeHtml(image.raw) : "";
+      })
+      .replace(/@@NABORSCHIK_(\d+)@@/g, function (_, index) {
+        var value = placeholders[Number(index)];
+        return value === undefined ? "" : escapeHtml(value);
+      });
   }
 
   function escapeHtml(value) {
@@ -107,7 +127,38 @@
     return root.marked.lexer(markdown, { gfm: true });
   }
 
-  function preprocess(markdown) {
+  function imageFromEmbed(match, options) {
+    var images = options && options.images;
+    if (!images) return null;
+
+    var inner = match.replace(/^!\[\[/, "").replace(/\]\]$/, "");
+    var parts = inner.split("|");
+    var target = (parts.shift() || "").trim();
+    if (!target) return null;
+
+    var width = null;
+    parts.forEach(function (part) {
+      var value = part.trim();
+      if (/^\d+$/.test(value)) width = Number(value);
+    });
+
+    var name = target.split("/").pop();
+    var src = null;
+    if (Object.prototype.hasOwnProperty.call(images, target)) src = images[target];
+    else if (Object.prototype.hasOwnProperty.call(images, name)) src = images[name];
+
+    if (!src || !/^(data:image\/|https?:\/\/)/i.test(String(src))) return null;
+
+    return {
+      type: "image",
+      src: String(src),
+      alt: name,
+      width: width,
+      raw: match
+    };
+  }
+
+  function preprocess(markdown, options) {
     resetPlaceholders();
 
     var source = String(markdown).replace(/\r\n?/g, "\n");
@@ -124,8 +175,10 @@
 
     // Вставки и вики-ссылки остаются текстом как есть: замена ручная,
     // а по [[ пользователь найдёт их поиском, как и картинки.
+    // Если для файла есть карта изображений, вставка становится image-блоком.
     source = source.replace(/!\[\[[^\]]*\]\]/g, function (match) {
-      return placeholder(match);
+      var image = imageFromEmbed(match, options);
+      return image ? imagePlaceholder(image) : placeholder(match);
     });
 
     source = source.replace(/\[\[[^\[\]]+\]\]/g, function (match) {
@@ -276,10 +329,11 @@
   /**
    * Markdown в массив блоков.
    * @param {string} markdown
+   * @param {{images?: Object<string, string>}} [options]
    * @returns {Block[]}
    */
-  function toBlocks(markdown) {
-    var source = preprocess(markdown);
+  function toBlocks(markdown, options) {
+    var source = preprocess(markdown, options);
     var tokens = lexer(source);
     var blocks = [];
 
@@ -298,6 +352,16 @@
         }
 
         case "paragraph": {
+          // Отдельная строка с картинкой из карты становится image-блоком.
+          if (token.tokens && token.tokens.length === 1 && token.tokens[0].type === "text") {
+            var only = token.tokens[0];
+            var image = imageFromToken(only.text) || imageFromToken(only.raw);
+            if (image) {
+              blocks.push(image);
+              break;
+            }
+          }
+
           var html = renderInline(token.tokens).trim();
           if (stripTags(html)) blocks.push({ type: "text", html: "<p>" + html + "</p>" });
           break;
@@ -362,6 +426,7 @@
     if (block.type === "delimiter") return "***";
     if (block.type === "code") return block.text;
     if (block.type === "table") return block.raw;
+    if (block.type === "image") return block.raw;
     if (block.type === "text") return htmlToText(block.html).trim();
     if (block.type === "quote") {
       return htmlToText(block.html)
@@ -400,6 +465,10 @@
     }
     if (block.type === "table") {
       return "[code:" + JSON.stringify({ text: block.raw, lang: "", lineWrapping: false }) + "]";
+    }
+    if (block.type === "image") {
+      // vc.ru не принимает data URI: отдаём прежнюю строку для ручной замены.
+      return "[text:" + JSON.stringify({ text: "<p>" + escapeHtml(block.raw) + "</p>" }) + "]";
     }
     if (block.type === "delimiter") {
       return "[delimiter:" + JSON.stringify({ type: "default" }) + "]";
@@ -452,6 +521,12 @@
     return escapeHtml(String(text)).replace(/\n/g, "<br>");
   }
 
+  function renderImageHtml(block) {
+    var attrs = ' src="' + escapeAttr(block.src) + '" alt="' + escapeAttr(block.alt) + '"';
+    if (block.width) attrs += ' width="' + Number(block.width) + '"';
+    return "<img" + attrs + ">";
+  }
+
   function dzenBlockToHtml(block) {
     switch (block.type) {
       case "header":
@@ -466,6 +541,8 @@
         return "<blockquote><p>" + textLinesToHtml(block.text) + "</p></blockquote>";
       case "table":
         return renderTableAsList(block);
+      case "image":
+        return renderImageHtml(block);
       case "delimiter":
         return "<p>* * *</p>";
       default:
@@ -526,6 +603,8 @@
         return "<pre>" + escapeHtml(block.text) + "</pre>";
       case "table":
         return renderTableHtml(block);
+      case "image":
+        return renderImageHtml(block);
       case "delimiter":
         return "<hr>";
       default:

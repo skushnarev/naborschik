@@ -20,6 +20,8 @@
   var toastEl = $("toast");
   var hintEl = $("hint");
 
+  var TEST_IMAGES = window.NABORSCHIK_TEST_IMAGES || {};
+
   var state = {
     blocks: [],
     outputs: { vc: "", dzen: "", smartlab: "" },
@@ -36,6 +38,8 @@
     "# Заголовок статьи в буфер не входит",
     "",
     "![[BLG016_top.jpg|800]]",
+    "",
+    "![[star.png|64]]",
     "",
     "## Глава 1",
     "",
@@ -313,12 +317,26 @@
           outputs.dzen.indexOf(link) !== -1 &&
           outputs.smartlab.indexOf(link) !== -1;
       }
+    },
+    {
+      n: 25,
+      name: "Фото: data URI",
+      input: "![[star.png|64]]",
+      expect: "vc текстом, Дзен и Смартлаб через img",
+      check: function (blocks, payload, outputs) {
+        return blocks.length === 1 && blocks[0].type === "image" &&
+          payload === "![[star.png|64]]" &&
+          outputs.dzen.indexOf('<img src="data:image/png;base64,') === 0 &&
+          outputs.smartlab.indexOf('<img src="data:image/png;base64,') === 0 &&
+          outputs.dzen.indexOf('alt="star.png"') !== -1 &&
+          outputs.smartlab.indexOf('alt="star.png"') !== -1;
+      }
     }
   ];
 
   function convert() {
     try {
-      state.blocks = C.toBlocks(input.value);
+      state.blocks = C.toBlocks(input.value, { images: TEST_IMAGES });
       state.outputs = {
         vc: C.toVcruPayload(state.blocks),
         dzen: C.toDzenHtml(state.blocks),
@@ -411,6 +429,9 @@
     }
     if (output.indexOf("[[") !== -1) {
       messages.push("В выходе остались Obsidian-ссылки или картинки. Найди их поиском по [[ и замени руками.");
+    }
+    if (state.platform !== "vc" && output.indexOf("<img") !== -1) {
+      messages.push("Фото уходит через data URI. Проверь в черновике, не вырезал ли его редактор.");
     }
     notice.hidden = messages.length === 0;
     notice.textContent = messages.join(" ");
@@ -646,7 +667,7 @@
 
   function runCase(testCase) {
     try {
-      var blocks = C.toBlocks(testCase.input);
+      var blocks = C.toBlocks(testCase.input, { images: TEST_IMAGES });
       var outputs = {
         vc: C.toVcruPayload(blocks),
         dzen: C.toDzenHtml(blocks),
