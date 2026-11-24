@@ -1,17 +1,13 @@
 const { Notice, Plugin } = require("obsidian");
 
 const PLATFORMS = [
-	{ id: "vcru", label: "vc.ru", dative: "vc.ru" },
-	{ id: "dzen", label: "Дзен", dative: "Дзена" },
-	{ id: "smartlab", label: "Смартлаб", dative: "Смартлаба" }
+	{ id: "vcru", dative: "vc.ru" },
+	{ id: "dzen", dative: "Дзена" },
+	{ id: "smartlab", dative: "Смартлаба" }
 ];
 
 const EMPTY_NOTICE = "Нечего копировать";
 const BUFFER_NOTICE = "Не удалось записать в буфер";
-
-function composePayload(prefix, text) {
-	return prefix + "\n\n" + text;
-}
 
 class NaborschikPlugin extends Plugin {
 	async onload() {
@@ -26,14 +22,14 @@ class NaborschikPlugin extends Plugin {
 
 	async copyFor(platform, editor) {
 		const selection = editor.getSelection();
-		const source = selection.trim() !== "" ? selection : editor.getValue();
+		const source = selection !== "" ? selection : editor.getValue();
 
 		if (source.trim() === "") {
 			new Notice(EMPTY_NOTICE);
 			return;
 		}
 
-		const payload = composePayload("Для " + platform.dative, source);
+		const payload = "Для " + platform.dative + "\n\n" + source;
 
 		try {
 			await navigator.clipboard.writeText(payload);
@@ -43,7 +39,7 @@ class NaborschikPlugin extends Plugin {
 			return;
 		}
 
-		new Notice("Скопировано для " + platform.dative + ", символов: " + payload.length);
+		new Notice("Скопировано для " + platform.dative + ", символов: " + source.length);
 	}
 }
 

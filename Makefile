@@ -29,6 +29,7 @@ prototype-serve: ## Открыть прототип через локальны�
 plugin-link: ## Поставить плагин в хранилище симлинком (VAULT=/путь/к/хранилищу)
 	@test -n "$(VAULT)" || { echo "Укажите хранилище: make plugin-link VAULT=/путь/к/хранилищу"; exit 1; }
 	@test -d "$(VAULT)" || { echo "Нет такого хранилища: $(VAULT)"; exit 1; }
+	@test -d "$(VAULT)/.obsidian" || { echo "Похоже, это не хранилище Obsidian: $(VAULT)"; exit 1; }
 	@mkdir -p "$(VAULT)/.obsidian/plugins"
 	@ln -sfn "$(CURDIR)/prototype/obsidian" "$(VAULT)/.obsidian/plugins/naborschik"
 	@echo "Плагин: $(VAULT)/.obsidian/plugins/naborschik -> prototype/obsidian"
