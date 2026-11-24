@@ -62,7 +62,7 @@
 Код лежит в `prototype/obsidian/` и остаётся одноразовым, как и остальной прототип. Состав:
 
 - `main.js` - CommonJS, без сборки, без зависимостей, `module.exports = class extends Plugin`;
-- `manifest.json` - `id: naborschik`, `name: Naborschik`, `version: 0.0.1`, `minAppVersion: 1.5.0`, `isDesktopOnly: true`;
+- `manifest.json` - `id: naborschik`, `name: Naborschik`, `version: 0.0.1`, `minAppVersion: 1.5.0`, `author: LEXX`, `isDesktopOnly: true`;
 - `README.md` - установка, перезагрузка, откат на плоские пункты.
 
 Сборки нет: Obsidian грузит `main.js` как CommonJS, а TypeScript и `marked` заглушке не нужны.

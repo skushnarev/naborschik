@@ -4,9 +4,9 @@ const { Menu, Notice, Plugin } = require("obsidian");
 const USE_SUBMENU = true;
 
 const PLATFORMS = [
-	{ id: "vcru", label: "vc.ru", dative: "vc.ru" },
-	{ id: "dzen", label: "Дзен", dative: "Дзена" },
-	{ id: "smartlab", label: "Смартлаб", dative: "Смартлаба" }
+	{ id: "vcru", menuTitle: "vc.ru", forWhom: "vc.ru" },
+	{ id: "dzen", menuTitle: "Дзен", forWhom: "Дзена" },
+	{ id: "smartlab", menuTitle: "Смартлаб", forWhom: "Смартлаба" }
 ];
 
 const EMPTY_NOTICE = "Нечего копировать";
@@ -17,7 +17,7 @@ class NaborschikPlugin extends Plugin {
 		for (const platform of PLATFORMS) {
 			this.addCommand({
 				id: "copy-for-" + platform.id,
-				name: "Копировать для " + platform.dative,
+				name: "Копировать для " + platform.forWhom,
 				editorCallback: (editor) => this.copyFor(platform, editor)
 			});
 		}
@@ -28,51 +28,59 @@ class NaborschikPlugin extends Plugin {
 	}
 
 	addEditorMenu(menu, editor) {
-		if (USE_SUBMENU && this.addSubmenu(menu, editor)) return;
+		if (USE_SUBMENU && this.tryAddSubmenu(menu, editor)) return;
 		this.addFlatItems(menu, editor);
 	}
 
-	addSubmenu(menu, editor) {
+	tryAddSubmenu(menu, editor) {
+		if (!this.supportsSubmenu()) return false;
+
 		const submenu = new Menu();
 
 		for (const platform of PLATFORMS) {
-			submenu.addItem((item) =>
-				item.setTitle(platform.label).onClick(() => this.copyFor(platform, editor))
-			);
+			this.addCopyItem(submenu, platform.menuTitle, platform, editor);
 		}
 
-		let attached = false;
+		try {
+			menu.addItem((item) => {
+				item.setTitle("Копировать для ...").setSubmenu(submenu);
+			});
+			return true;
+		} catch (error) {
+			// Пункт уже мог попасть в меню, плоские копии дали бы четыре строки.
+			console.error("naborschik: подменю не добавилось", error);
+			return true;
+		}
+	}
 
-		menu.addItem((item) => {
-			item.setTitle("Копировать для ...").setIcon("copy");
-			if (typeof item.setSubmenu !== "function") return;
-			item.setSubmenu(submenu);
-			attached = true;
+	supportsSubmenu() {
+		let supported = false;
+		new Menu().addItem((item) => {
+			supported = typeof item.setSubmenu === "function";
 		});
-
-		return attached;
+		return supported;
 	}
 
 	addFlatItems(menu, editor) {
 		for (const platform of PLATFORMS) {
-			menu.addItem((item) =>
-				item
-					.setTitle("Копировать для " + platform.dative)
-					.onClick(() => this.copyFor(platform, editor))
-			);
+			this.addCopyItem(menu, "Копировать для " + platform.forWhom, platform, editor);
 		}
+	}
+
+	addCopyItem(menu, title, platform, editor) {
+		menu.addItem((item) => item.setTitle(title).onClick(() => this.copyFor(platform, editor)));
 	}
 
 	async copyFor(platform, editor) {
 		const selection = editor.getSelection();
 		const source = selection !== "" ? selection : editor.getValue();
 
-		if (source.trim() === "") {
+		if (source === "") {
 			new Notice(EMPTY_NOTICE);
 			return;
 		}
 
-		const payload = "Для " + platform.dative + "\n\n" + source;
+		const payload = "Для " + platform.forWhom + "\n\n" + source;
 
 		try {
 			await navigator.clipboard.writeText(payload);
@@ -82,7 +90,7 @@ class NaborschikPlugin extends Plugin {
 			return;
 		}
 
-		new Notice("Скопировано для " + platform.dative + ", символов: " + source.length);
+		new Notice("Скопировано для " + platform.forWhom + ", символов: " + source.length);
 	}
 }
 
