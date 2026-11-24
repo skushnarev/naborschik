@@ -320,16 +320,42 @@
     },
     {
       n: 25,
-      name: "Фото: data URI",
+      name: "Фото: img в HTML",
       input: "![[star.png|64]]",
-      expect: "vc текстом, Дзен и Смартлаб через img",
+      expect: "Дзен и Смартлаб получают img с data URI",
       check: function (blocks, payload, outputs) {
         return blocks.length === 1 && blocks[0].type === "image" &&
-          payload === "![[star.png|64]]" &&
           outputs.dzen.indexOf('<img src="data:image/png;base64,') === 0 &&
           outputs.smartlab.indexOf('<img src="data:image/png;base64,') === 0 &&
           outputs.dzen.indexOf('alt="star.png"') !== -1 &&
           outputs.smartlab.indexOf('alt="star.png"') !== -1;
+      }
+    },
+    {
+      n: 26,
+      name: "Фото: media для vc",
+      input: "![[star.png|64]]",
+      expect: "vc получает media с uuid и превью",
+      check: function (blocks, payload) {
+        if (blocks.length !== 1 || blocks[0].type !== "image" || !blocks[0].media) return false;
+        if (payload.indexOf("[media:") !== 0) return false;
+
+        var data;
+        try {
+          data = JSON.parse(payload.slice("[media:".length, -1));
+        } catch (error) {
+          return false;
+        }
+
+        var image = data.items && data.items[0] && data.items[0].image && data.items[0].image.data;
+        return Boolean(image) &&
+          image.uuid === blocks[0].media.uuid &&
+          image.width === 16 &&
+          image.height === 16 &&
+          image.size === blocks[0].media.size &&
+          image.base64preview === blocks[0].media.preview &&
+          image.hash === "" &&
+          Array.isArray(image.external_service) && image.external_service.length === 0;
       }
     }
   ];
@@ -373,12 +399,12 @@
 
   function hintFor() {
     if (state.platform === "dzen") {
-      return "В Дзене вставь HTML в визуальный редактор. Код станет цитатой, таблица списком, разделитель текстом. Картинки и вики-ссылки остаются строками <code>![[...]]</code> и <code>[[...]]</code>, замена ручная.";
+      return "В Дзене вставь HTML в визуальный редактор. Код станет цитатой, таблица списком, разделитель текстом. Фото из карты уходит через <code>img</code>, остальные картинки и вики-ссылки остаются строками <code>![[...]]</code> и <code>[[...]]</code>.";
     }
     if (state.platform === "smartlab") {
-      return "В Смартлабе вставь HTML в визуальный редактор. Санитайзер оставляет pre, table и hr. Картинки и вики-ссылки остаются строками <code>![[...]]</code> и <code>[[...]]</code>, замена ручная.";
+      return "В Смартлабе вставь HTML в визуальный редактор. Санитайзер оставляет pre, table и hr. Фото из карты уходит через <code>img</code>, остальные картинки и вики-ссылки остаются строками <code>![[...]]</code> и <code>[[...]]</code>.";
     }
-    return "В черновике vc.ru поставь курсор в <strong>пустой текстовый блок</strong> и вставь. Если курсор стоит в другом блоке, vc.ru склеит всё в один. Один блок уходит обычным текстом: это ограничение площадки. Картинки и вики-ссылки остаются строками <code>![[...]]</code> и <code>[[...]]</code>, замена ручная.";
+    return "В черновике vc.ru поставь курсор в <strong>пустой текстовый блок</strong> и вставь. Если курсор стоит в другом блоке, vc.ru склеит всё в один. Одиночный текстовый блок уходит текстом: это ограничение площадки. Фото из карты уходит блоком <code>[media:...]</code>, остальные картинки и вики-ссылки остаются строками <code>![[...]]</code> и <code>[[...]]</code>.";
   }
 
   function renderPlatforms() {
@@ -400,9 +426,11 @@
     stats.innerHTML = "";
     stats.appendChild(pill(blocks.length + " блоков"));
     stats.appendChild(pill(output.length + " символов"));
+    var singleBlock = blocks.length === 1 ? blocks[0] : null;
+    var singleMedia = Boolean(singleBlock && singleBlock.type === "image" && singleBlock.media && singleBlock.media.uuid);
     if (state.platform === "vc") {
-      var mode = blocks.length === 1 ? "plain" : "tool";
-      stats.appendChild(pill(mode === "plain" ? "plain: один блок" : "tool: много блоков", mode === "plain" ? "warn" : "ok"));
+      var mode = blocks.length === 1 ? (singleMedia ? "media" : "plain") : "tool";
+      stats.appendChild(pill(mode + ": " + (mode === "tool" ? "много блоков" : "один блок"), mode === "plain" ? "warn" : "ok"));
     } else {
       stats.appendChild(pill("HTML: " + platformName(), "ok"));
     }
@@ -412,8 +440,11 @@
     if (state.error) {
       messages.push("Ошибка конвертера: " + state.error);
     }
-    if (state.platform === "vc" && blocks.length === 1) {
+    if (state.platform === "vc" && blocks.length === 1 && !singleMedia) {
       messages.push("Один блок уйдёт обычным текстом. vc.ru не создаёт нативный блок из одиночной строки [tool:...]. Если нужен нативный блок, добавь в выделение второй блок.");
+    }
+    if (state.platform === "vc" && output.indexOf("[media:") !== -1) {
+      messages.push("vc.ru: фото уходит блоком media с условным uuid. Проверь, появилось ли фото в черновике или блок остался текстом.");
     }
     if (blocks.length === 0) {
       messages.push("Блоков нет. Проверь, что вставился Markdown, а не пустой текст.");

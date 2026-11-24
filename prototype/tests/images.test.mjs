@@ -67,3 +67,81 @@ test("картинка внутри абзаца остаётся текстом
   assert.ok(blocks[0].html.includes("![[star.png|64]]"));
   assert.ok(!blocks[0].html.includes("<img"));
 });
+
+const MEDIA = {
+  uuid: "d5b9fb1f-6c25-5923-a2d6-838d62c9503e",
+  width: 16,
+  height: 16,
+  size: 106,
+  type: "png",
+  color: "e64626",
+  preview: "/9j/4AAQSkZJRgABAQIA"
+};
+const mediaOptions = { images: { "star.png": { src: PNG, media: MEDIA } } };
+
+function parseMediaLine(payload) {
+  const line = payload.split("\n\n").find((part) => part.startsWith("[media:"));
+  assert.ok(line, "в payload нет media-блока");
+  return JSON.parse(line.slice("[media:".length, -1));
+}
+
+test("карта принимает объект с media", () => {
+  const blocks = C.toBlocks("![[star.png|64]]", mediaOptions);
+
+  assert.equal(blocks[0].type, "image");
+  assert.equal(blocks[0].src, PNG);
+  assert.equal(blocks[0].width, 64);
+  assert.deepEqual(blocks[0].media, MEDIA);
+});
+
+test("объект с media.uuid даёт vc.ru блок media", () => {
+  const payload = C.toVcruPayload(C.toBlocks("Текст\n\n![[star.png|64]]", mediaOptions));
+  const data = parseMediaLine(payload);
+
+  assert.equal(data.title, null);
+  assert.equal(data.items.length, 1);
+  assert.equal(data.items[0].title, "star.png");
+  assert.equal(data.items[0].image.type, "image");
+  assert.deepEqual(data.items[0].image.data, {
+    uuid: MEDIA.uuid,
+    width: 16,
+    height: 16,
+    size: 106,
+    type: "png",
+    color: "e64626",
+    hash: "",
+    external_service: [],
+    base64preview: "/9j/4AAQSkZJRgABAQIA"
+  });
+});
+
+test("одиночная картинка с media не сворачивается в текст", () => {
+  const payload = C.toVcruPayload(C.toBlocks("![[star.png|64]]", mediaOptions));
+  const data = parseMediaLine(payload);
+
+  assert.equal(data.items[0].image.data.uuid, MEDIA.uuid);
+});
+
+test("media без uuid падает обратно в текст", () => {
+  const withoutUuid = { images: { "star.png": { src: PNG, media: { width: 16 } } } };
+  const single = C.toVcruPayload(C.toBlocks("![[star.png|64]]", withoutUuid));
+  const mixed = C.toVcruPayload(C.toBlocks("Текст\n\n![[star.png|64]]", withoutUuid));
+
+  assert.equal(single, "![[star.png|64]]");
+  assert.ok(mixed.includes('[text:{"text":"<p>![[star.png|64]]</p>"}]'));
+});
+
+test("объект без src остаётся текстом", () => {
+  const blocks = C.toBlocks("![[star.png]]", { images: { "star.png": { media: MEDIA } } });
+
+  assert.equal(blocks[0].type, "text");
+  assert.ok(blocks[0].html.includes("![[star.png]]"));
+});
+
+test("Дзен и Смартлаб берут src из объекта", () => {
+  const blocks = C.toBlocks("![[star.png|64]]", mediaOptions);
+  const expected = '<img src="' + PNG + '" alt="star.png" width="64">';
+
+  assert.equal(C.toDzenHtml(blocks), expected);
+  assert.equal(C.toSmartlabHtml(blocks), expected);
+});

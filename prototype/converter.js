@@ -15,7 +15,8 @@
   /** @typedef {{type: "quote", html: string, subline1: string}} QuoteBlock */
   /** @typedef {{type: "code", text: string, lang: string, lineWrapping: boolean}} CodeBlock */
   /** @typedef {{type: "table", headers: string[], rows: string[][], align: Array<string|null>, raw: string}} TableBlock */
-  /** @typedef {{type: "image", src: string, alt: string, width: number|null, raw: string}} ImageBlock */
+  /** @typedef {{uuid: string, width: number, height: number, size: number, type: string, color: string, preview: string}} ImageMedia */
+  /** @typedef {{type: "image", src: string, alt: string, width: number|null, raw: string, media: ImageMedia|null}} ImageBlock */
   /** @typedef {{type: "delimiter"}} DelimiterBlock */
   /** @typedef {HeaderBlock | TextBlock | ListBlock | QuoteBlock | CodeBlock | TableBlock | ImageBlock | DelimiterBlock} Block */
 
@@ -143,9 +144,18 @@
     });
 
     var name = target.split("/").pop();
+    var entry = null;
+    if (Object.prototype.hasOwnProperty.call(images, target)) entry = images[target];
+    else if (Object.prototype.hasOwnProperty.call(images, name)) entry = images[name];
+
     var src = null;
-    if (Object.prototype.hasOwnProperty.call(images, target)) src = images[target];
-    else if (Object.prototype.hasOwnProperty.call(images, name)) src = images[name];
+    var media = null;
+    if (typeof entry === "string") {
+      src = entry;
+    } else if (entry && typeof entry === "object") {
+      src = entry.src;
+      media = entry.media || null;
+    }
 
     if (!src || !/^(data:image\/|https?:\/\/)/i.test(String(src))) return null;
 
@@ -154,7 +164,8 @@
       src: String(src),
       alt: name,
       width: width,
-      raw: match
+      raw: match,
+      media: media
     };
   }
 
@@ -447,6 +458,30 @@
     return "";
   }
 
+  function mediaPayload(block) {
+    var media = block.media || {};
+    return {
+      title: null,
+      items: [{
+        title: block.alt || null,
+        image: {
+          type: "image",
+          data: {
+            uuid: media.uuid,
+            width: media.width != null ? media.width : (block.width || 0),
+            height: media.height != null ? media.height : 0,
+            size: media.size != null ? media.size : 0,
+            type: media.type || "png",
+            color: media.color || "",
+            hash: "",
+            external_service: [],
+            base64preview: media.preview || ""
+          }
+        }
+      }]
+    };
+  }
+
   function serializeBlock(block) {
     if (block.type === "header") {
       return "[header:" + JSON.stringify({ text: block.text, style: block.style }) + "]";
@@ -467,6 +502,9 @@
       return "[code:" + JSON.stringify({ text: block.raw, lang: "", lineWrapping: false }) + "]";
     }
     if (block.type === "image") {
+      if (block.media && block.media.uuid) {
+        return "[media:" + JSON.stringify(mediaPayload(block)) + "]";
+      }
       // vc.ru не принимает data URI: отдаём прежнюю строку для ручной замены.
       return "[text:" + JSON.stringify({ text: "<p>" + escapeHtml(block.raw) + "</p>" }) + "]";
     }
@@ -485,7 +523,14 @@
    */
   function toVcruPayload(blocks) {
     if (!blocks || blocks.length === 0) return "";
-    if (blocks.length === 1) return singleBlockToText(blocks[0]);
+    if (blocks.length === 1) {
+      // Одиночный media-блок оставляем нативным: иначе эксперимент с фото
+      // из одного блока всегда превращался бы в текст.
+      if (blocks[0].type === "image" && blocks[0].media && blocks[0].media.uuid) {
+        return serializeBlock(blocks[0]);
+      }
+      return singleBlockToText(blocks[0]);
+    }
     return blocks.map(serializeBlock).join("\n\n");
   }
 
