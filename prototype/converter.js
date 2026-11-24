@@ -505,7 +505,7 @@
       if (block.media && block.media.uuid) {
         return "[media:" + JSON.stringify(mediaPayload(block)) + "]";
       }
-      // vc.ru не принимает data URI: отдаём прежнюю строку для ручной замены.
+      // По умолчанию отдаём прежнюю строку для ручной замены: вставка фото это отдельная фича плагина (PL-13).
       return "[text:" + JSON.stringify({ text: "<p>" + escapeHtml(block.raw) + "</p>" }) + "]";
     }
     if (block.type === "delimiter") {
