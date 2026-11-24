@@ -505,8 +505,10 @@
       if (block.media && block.media.uuid) {
         return "[media:" + JSON.stringify(mediaPayload(block)) + "]";
       }
-      // Картинка из карты уходит телом в text-блок: vc.ru сам загружает data URI.
-      return "[text:" + JSON.stringify({ text: "<p>" + renderImageHtml(block) + "</p>" }) + "]";
+      // vc.ru принимает data URI при вставке, но не сохраняет картинку
+      // после перезагрузки черновика. Поэтому строка остаётся текстом,
+      // а фото автор вставляет вручную.
+      return "[text:" + JSON.stringify({ text: escapeHtml(block.raw) }) + "]";
     }
     if (block.type === "delimiter") {
       return "[delimiter:" + JSON.stringify({ type: "default" }) + "]";
@@ -524,9 +526,10 @@
   function toVcruPayload(blocks) {
     if (!blocks || blocks.length === 0) return "";
     if (blocks.length === 1) {
-      // Одиночный image-блок оставляем нативным: иначе картинка
-      // из одного блока всегда превращалась бы в текст.
-      if (blocks[0].type === "image") {
+      // Одиночный блок отдаётся читаемым текстом: vc.ru не создаёт
+      // нативный блок из одной строки [tool:...]. Исключение только
+      // готовый media с настоящим uuid.
+      if (blocks[0].type === "image" && blocks[0].media && blocks[0].media.uuid) {
         return serializeBlock(blocks[0]);
       }
       return singleBlockToText(blocks[0]);

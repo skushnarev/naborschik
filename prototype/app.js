@@ -360,23 +360,12 @@
     },
     {
       n: 27,
-      name: "Фото: img в vc",
+      name: "Фото: строка в vc",
       input: "![[gray.png|300]]",
-      expect: "vc получает img с data URI",
+      expect: "vc получает строку текстом",
       check: function (blocks, payload) {
         if (blocks.length !== 1 || blocks[0].type !== "image") return false;
-        if (payload.indexOf("[text:") !== 0) return false;
-
-        var data;
-        try {
-          data = JSON.parse(payload.slice("[text:".length, -1));
-        } catch (error) {
-          return false;
-        }
-
-        return data.text.indexOf('<img src="data:image/png;base64,') !== -1 &&
-          data.text.indexOf('alt="gray.png"') !== -1 &&
-          data.text.indexOf('width="300"') !== -1;
+        return payload === "![[gray.png|300]]" && payload.indexOf("<img") === -1;
       }
     }
   ];
