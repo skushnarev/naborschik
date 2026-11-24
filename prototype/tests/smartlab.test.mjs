@@ -11,11 +11,12 @@ const C = require(join(here, "..", "converter.js"));
 
 const smartlab = (markdown) => C.toSmartlabHtml(C.toBlocks(markdown));
 
-test("Смартлаб: H2 и H3 отдаются как h3", () => {
+test("Смартлаб: H2 и H3 отдаются как h3 и h4 без каскада", () => {
   const html = smartlab("## Глава\n\n### Раздел");
 
-  assert.equal(html, "<h3>Глава</h3>\n<h3>Раздел</h3>");
+  assert.equal(html, "<h3>Глава</h3>\n<h4>Раздел</h4>");
   assert.ok(!html.includes("<h2>"));
+  assert.ok(!html.includes("<h5>"));
 });
 
 test("Смартлаб: абзац сохраняет инлайн-разметку", () => {

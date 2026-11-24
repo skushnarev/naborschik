@@ -519,9 +519,12 @@
 
   function smartlabBlockToHtml(block) {
     switch (block.type) {
-      case "header":
-        // Смартлаб вырезает h2 и оставляет голый текст. Штатный заголовок площадки h3.
-        return "<h3>" + escapeHtml(block.text) + "</h3>";
+      case "header": {
+        // Смартлаб вырезает h2, а в редакторе доступны только h3 и h4.
+        // Маппинг по исходному стилю блока, без строковых замен: h2→h3, h3→h4.
+        var headingTag = block.style === "h3" ? "h4" : "h3";
+        return "<" + headingTag + ">" + escapeHtml(block.text) + "</" + headingTag + ">";
+      }
       case "text":
         return block.html;
       case "list":

@@ -284,9 +284,9 @@
       n: 22,
       name: "Смартлаб: заголовки",
       input: "## Глава\n\n### Раздел",
-      expect: "оба уровня как h3, без h2",
+      expect: "h2 в h3, h3 в h4, без каскада",
       check: function (blocks, payload, outputs) {
-        return outputs.smartlab === "<h3>Глава</h3>\n<h3>Раздел</h3>" &&
+        return outputs.smartlab === "<h3>Глава</h3>\n<h4>Раздел</h4>" &&
           outputs.smartlab.indexOf("<h2>") === -1;
       }
     },
