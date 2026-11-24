@@ -35,15 +35,15 @@ class NaborschikPlugin extends Plugin {
 	tryAddSubmenu(menu, editor) {
 		if (!this.supportsSubmenu()) return false;
 
-		const submenu = new Menu();
-
-		for (const platform of PLATFORMS) {
-			this.addCopyItem(submenu, platform.menuTitle, platform, editor);
-		}
-
 		try {
 			menu.addItem((item) => {
-				item.setTitle("Копировать для ...").setSubmenu(submenu);
+				item.setTitle("Копировать для ...");
+				// setSubmenu() создаёт подменю и возвращает его, аргумент не принимает.
+				const submenu = item.setSubmenu();
+
+				for (const platform of PLATFORMS) {
+					this.addCopyItem(submenu, platform.menuTitle, platform, editor);
+				}
 			});
 			return true;
 		} catch (error) {
