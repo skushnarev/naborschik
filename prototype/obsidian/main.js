@@ -1,9 +1,12 @@
-const { Notice, Plugin } = require("obsidian");
+const { Menu, Notice, Plugin } = require("obsidian");
+
+// Если подменю не отрисуется, поставить false: получатся три плоских пункта.
+const USE_SUBMENU = true;
 
 const PLATFORMS = [
-	{ id: "vcru", dative: "vc.ru" },
-	{ id: "dzen", dative: "Дзена" },
-	{ id: "smartlab", dative: "Смартлаба" }
+	{ id: "vcru", label: "vc.ru", dative: "vc.ru" },
+	{ id: "dzen", label: "Дзен", dative: "Дзена" },
+	{ id: "smartlab", label: "Смартлаб", dative: "Смартлаба" }
 ];
 
 const EMPTY_NOTICE = "Нечего копировать";
@@ -17,6 +20,46 @@ class NaborschikPlugin extends Plugin {
 				name: "Копировать для " + platform.dative,
 				editorCallback: (editor) => this.copyFor(platform, editor)
 			});
+		}
+
+		this.registerEvent(
+			this.app.workspace.on("editor-menu", (menu, editor) => this.addEditorMenu(menu, editor))
+		);
+	}
+
+	addEditorMenu(menu, editor) {
+		if (USE_SUBMENU && this.addSubmenu(menu, editor)) return;
+		this.addFlatItems(menu, editor);
+	}
+
+	addSubmenu(menu, editor) {
+		const submenu = new Menu();
+
+		for (const platform of PLATFORMS) {
+			submenu.addItem((item) =>
+				item.setTitle(platform.label).onClick(() => this.copyFor(platform, editor))
+			);
+		}
+
+		let attached = false;
+
+		menu.addItem((item) => {
+			item.setTitle("Копировать для ...").setIcon("copy");
+			if (typeof item.setSubmenu !== "function") return;
+			item.setSubmenu(submenu);
+			attached = true;
+		});
+
+		return attached;
+	}
+
+	addFlatItems(menu, editor) {
+		for (const platform of PLATFORMS) {
+			menu.addItem((item) =>
+				item
+					.setTitle("Копировать для " + platform.dative)
+					.onClick(() => this.copyFor(platform, editor))
+			);
 		}
 	}
 
