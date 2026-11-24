@@ -54,3 +54,20 @@ test("обычный код остаётся code-блоком", () => {
   assert.equal(blocks[0].lang, "javascript");
   assert.equal(blocks[0].text, "const x = 1;");
 });
+
+test("вики-ссылки остаются как есть для ручной замены", () => {
+  const blocks = C.toBlocks("Ссылка на [[Папка/Заметка|алиас]] и [[Заметка#Раздел]].");
+  const html = blocks[0].html;
+
+  assert.ok(html.includes("[[Папка/Заметка|алиас]]"));
+  assert.ok(html.includes("[[Заметка#Раздел]]"));
+  assert.ok(!html.includes(">алиас<"));
+});
+
+test("вики-ссылка сохраняется во всех трёх выходах", () => {
+  const blocks = C.toBlocks("См. [[Папка/Заметка|алиас]].");
+
+  assert.ok(C.toVcruPayload(blocks).includes("[[Папка/Заметка|алиас]]"));
+  assert.ok(C.toDzenHtml(blocks).includes("[[Папка/Заметка|алиас]]"));
+  assert.ok(C.toSmartlabHtml(blocks).includes("[[Папка/Заметка|алиас]]"));
+});

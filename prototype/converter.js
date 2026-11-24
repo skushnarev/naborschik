@@ -107,17 +107,6 @@
     return root.marked.lexer(markdown, { gfm: true });
   }
 
-  function wikiLabel(inner) {
-    var parts = inner.split("|");
-    var target = parts.shift().trim();
-    var alias = parts.join("|").trim();
-    if (alias) return alias;
-
-    var withoutHeading = target.split("#")[0].trim();
-    var name = withoutHeading.split("/").pop().replace(/\.md$/i, "");
-    return name || target.replace(/^#/, "").trim();
-  }
-
   function preprocess(markdown) {
     resetPlaceholders();
 
@@ -133,13 +122,14 @@
     // Комментарии Obsidian, включая многострочные.
     source = source.replace(/%%[\s\S]*?%%/g, "");
 
-    // Сначала прячем вставки заметок и файлов, потом вики-ссылки.
+    // Вставки и вики-ссылки остаются текстом как есть: замена ручная,
+    // а по [[ пользователь найдёт их поиском, как и картинки.
     source = source.replace(/!\[\[[^\]]*\]\]/g, function (match) {
       return placeholder(match);
     });
 
-    source = source.replace(/\[\[([^\[\]]+)\]\]/g, function (_, inner) {
-      return placeholder(wikiLabel(inner));
+    source = source.replace(/\[\[[^\[\]]+\]\]/g, function (match) {
+      return placeholder(match);
     });
 
     // Подсветка: разметку убираем, текст оставляем.
