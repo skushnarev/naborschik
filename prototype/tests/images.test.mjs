@@ -145,3 +145,19 @@ test("Дзен и Смартлаб берут src из объекта", () => {
   assert.equal(C.toDzenHtml(blocks), expected);
   assert.equal(C.toSmartlabHtml(blocks), expected);
 });
+
+test("фикстуры: star с media, gray без media и короткая", () => {
+  require(join(here, "..", "fixtures", "images.js"));
+  const images = globalThis.NABORSCHIK_TEST_IMAGES;
+
+  const star = C.toBlocks("![[star.png|64]]", { images })[0];
+  assert.equal(star.type, "image");
+  assert.ok(star.media && star.media.uuid);
+  assert.equal(star.media.width, 16);
+
+  const gray = C.toBlocks("![[gray.png|300]]", { images })[0];
+  assert.equal(gray.type, "image");
+  assert.equal(gray.media, null);
+  assert.ok(gray.src.startsWith("data:image/png;base64,"));
+  assert.ok(gray.src.length < 800);
+});
