@@ -37,12 +37,14 @@ test("без карты картинка остаётся текстом", () =>
   assert.ok(blocks[0].html.includes("![[star.png|64]]"));
 });
 
-test("vc.ru получает прежний текст картинки", () => {
+test("vc.ru получает img с data URI", () => {
   const single = C.toVcruPayload(C.toBlocks("![[star.png|64]]", options));
   const mixed = C.toVcruPayload(C.toBlocks("Текст\n\n![[star.png|64]]", options));
+  const img = '<img src="' + PNG + '" alt="star.png" width="64">';
 
-  assert.equal(single, "![[star.png|64]]");
-  assert.ok(mixed.includes('[text:{"text":"<p>![[star.png|64]]</p>"}]'));
+  assert.ok(single.startsWith("[text:"));
+  assert.ok(JSON.parse(single.slice("[text:".length, -1)).text.includes(img));
+  assert.ok(JSON.parse(mixed.split("\n\n")[1].slice("[text:".length, -1)).text.includes(img));
 });
 
 test("Дзен и Смартлаб получают img с data URI", () => {
@@ -122,13 +124,15 @@ test("одиночная картинка с media не сворачиваетс
   assert.equal(data.items[0].image.data.uuid, MEDIA.uuid);
 });
 
-test("media без uuid падает обратно в текст", () => {
+test("media без uuid уходит как img с data URI", () => {
   const withoutUuid = { images: { "star.png": { src: PNG, media: { width: 16 } } } };
   const single = C.toVcruPayload(C.toBlocks("![[star.png|64]]", withoutUuid));
   const mixed = C.toVcruPayload(C.toBlocks("Текст\n\n![[star.png|64]]", withoutUuid));
+  const img = '<img src="' + PNG + '" alt="star.png" width="64">';
 
-  assert.equal(single, "![[star.png|64]]");
-  assert.ok(mixed.includes('[text:{"text":"<p>![[star.png|64]]</p>"}]'));
+  assert.ok(single.startsWith("[text:"));
+  assert.ok(JSON.parse(single.slice("[text:".length, -1)).text.includes(img));
+  assert.ok(JSON.parse(mixed.split("\n\n")[1].slice("[text:".length, -1)).text.includes(img));
 });
 
 test("объект без src остаётся текстом", () => {

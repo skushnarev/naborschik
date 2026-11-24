@@ -505,8 +505,8 @@
       if (block.media && block.media.uuid) {
         return "[media:" + JSON.stringify(mediaPayload(block)) + "]";
       }
-      // По умолчанию отдаём прежнюю строку для ручной замены: вставка фото это отдельная фича плагина (PL-13).
-      return "[text:" + JSON.stringify({ text: "<p>" + escapeHtml(block.raw) + "</p>" }) + "]";
+      // Картинка из карты уходит телом в text-блок: vc.ru сам загружает data URI.
+      return "[text:" + JSON.stringify({ text: "<p>" + renderImageHtml(block) + "</p>" }) + "]";
     }
     if (block.type === "delimiter") {
       return "[delimiter:" + JSON.stringify({ type: "default" }) + "]";
@@ -524,9 +524,9 @@
   function toVcruPayload(blocks) {
     if (!blocks || blocks.length === 0) return "";
     if (blocks.length === 1) {
-      // Одиночный media-блок оставляем нативным: иначе эксперимент с фото
-      // из одного блока всегда превращался бы в текст.
-      if (blocks[0].type === "image" && blocks[0].media && blocks[0].media.uuid) {
+      // Одиночный image-блок оставляем нативным: иначе картинка
+      // из одного блока всегда превращалась бы в текст.
+      if (blocks[0].type === "image") {
         return serializeBlock(blocks[0]);
       }
       return singleBlockToText(blocks[0]);

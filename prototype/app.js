@@ -357,6 +357,27 @@
           image.hash === "" &&
           Array.isArray(image.external_service) && image.external_service.length === 0;
       }
+    },
+    {
+      n: 27,
+      name: "Фото: img в vc",
+      input: "![[gray.png|300]]",
+      expect: "vc получает img с data URI",
+      check: function (blocks, payload) {
+        if (blocks.length !== 1 || blocks[0].type !== "image") return false;
+        if (payload.indexOf("[text:") !== 0) return false;
+
+        var data;
+        try {
+          data = JSON.parse(payload.slice("[text:".length, -1));
+        } catch (error) {
+          return false;
+        }
+
+        return data.text.indexOf('<img src="data:image/png;base64,') !== -1 &&
+          data.text.indexOf('alt="gray.png"') !== -1 &&
+          data.text.indexOf('width="300"') !== -1;
+      }
     }
   ];
 
@@ -404,7 +425,7 @@
     if (state.platform === "smartlab") {
       return "В Смартлабе вставь HTML в визуальный редактор. Санитайзер оставляет pre, table и hr. Фото из карты уходит через <code>img</code>, остальные картинки и вики-ссылки остаются строками <code>![[...]]</code> и <code>[[...]]</code>.";
     }
-    return "В черновике vc.ru поставь курсор в <strong>пустой текстовый блок</strong> и вставь. Если курсор стоит в другом блоке, vc.ru склеит всё в один. Одиночный текстовый блок уходит текстом: это ограничение площадки. Фото с media уходит блоком <code>[media:...]</code>. Фото без media остаётся текстом-заглушкой: автовставка отложена, замени вручную.";
+    return "В черновике vc.ru поставь курсор в <strong>пустой текстовый блок</strong> и вставь. Если курсор стоит в другом блоке, vc.ru склеит всё в один. Одиночный текстовый блок уходит текстом: это ограничение площадки. Фото из карты уходит блоком <code>media</code> при готовом uuid или через <code>img</code> с data URI, vc.ru загружает его сам. Остальные картинки и вики-ссылки остаются строками <code>![[...]]</code> и <code>[[...]]</code>.";
   }
 
   function renderPlatforms() {
@@ -444,12 +465,10 @@
       messages.push("Один блок уйдёт обычным текстом. vc.ru не создаёт нативный блок из одиночной строки [tool:...]. Если нужен нативный блок, добавь в выделение второй блок.");
     }
     if (state.platform === "vc" && output.indexOf("[media:") !== -1) {
-      messages.push("vc.ru: фото уходит блоком media с условным uuid. Проверь, появилось ли фото в черновике или блок остался текстом.");
+      messages.push("vc.ru: фото уходит блоком media. Проверь, появилось ли фото в черновике или вместо него заглушка.");
     }
-    if (state.platform === "vc" && blocks.some(function (block) {
-      return block.type === "image" && !(block.media && block.media.uuid);
-    })) {
-      messages.push("vc.ru: фото уходит текстом-заглушкой, картинка не вставляется. Автовставка фото отложена до плагина.");
+    if (state.platform === "vc" && output.indexOf("<img") !== -1) {
+      messages.push("vc.ru: фото уходит как img с data URI. Проверь, не вырезал ли редактор картинку.");
     }
     if (blocks.length === 0) {
       messages.push("Блоков нет. Проверь, что вставился Markdown, а не пустой текст.");
