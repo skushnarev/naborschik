@@ -4,6 +4,6 @@
 	"version": "0.0.1",
 	"minAppVersion": "1.5.0",
 	"description": "Копирует выделенный Markdown в буфер площадки: vc.ru, Дзен, Смартлаб.",
-	"author": "Naborschik",
+	"author": "LEXX",
 	"isDesktopOnly": true
 }
