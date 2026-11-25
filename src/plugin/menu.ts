@@ -34,8 +34,9 @@ function addSubmenu(menu: Menu, platforms: PlatformAdapter[], onCopy: CopyHandle
 			}
 		});
 	} catch (error) {
-		// Пункт уже мог попасть в меню, плоские копии дали бы четыре строки.
-		console.error("naborschik: подменю не добавилось", error);
+		// Сбой подменю не должен отнимать копирование: даём плоские пункты.
+		console.error("naborschik: подменю не добавилось, рисую плоские пункты", error);
+		addFlatItems(menu, platforms, onCopy);
 	}
 }
 

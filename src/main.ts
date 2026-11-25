@@ -1,11 +1,12 @@
 import { Notice, Plugin, type Editor } from "obsidian";
 import { parse } from "./core/parse.ts";
-import type { PlatformAdapter } from "./core/types.ts";
+import type { ClipboardPayload, PlatformAdapter } from "./core/types.ts";
 import { writePayload } from "./plugin/clipboard.ts";
 import { addEditorMenu, copyLabel } from "./plugin/menu.ts";
 import { PLATFORMS } from "./platforms/index.ts";
 
 const EMPTY_NOTICE = "Нечего копировать";
+const PREPARE_NOTICE = "Не удалось подготовить текст";
 const BUFFER_NOTICE = "Не удалось записать в буфер";
 
 export default class NaborschikPlugin extends Plugin {
@@ -37,7 +38,18 @@ export default class NaborschikPlugin extends Plugin {
 		}
 
 		const context = { warnings: parsed.warnings };
-		const payload = await platform.convert(parsed, context);
+		let payload: ClipboardPayload;
+		try {
+			payload = await platform.convert(parsed, context);
+		} catch (error) {
+			console.error("naborschik: не удалось подготовить текст", error);
+			new Notice(PREPARE_NOTICE);
+			return;
+		}
+
+		for (const warning of context.warnings) {
+			console.warn("naborschik: " + warning.code + ": " + warning.message);
+		}
 
 		try {
 			await writePayload(payload);
@@ -45,10 +57,6 @@ export default class NaborschikPlugin extends Plugin {
 			console.error("naborschik: не удалось записать в буфер", error);
 			new Notice(BUFFER_NOTICE);
 			return;
-		}
-
-		for (const warning of context.warnings) {
-			console.warn("naborschik: " + warning.code + ": " + warning.message);
 		}
 
 		let notice = "Скопировано для " + platform.forWhom + ", символов: " + payload.plain.length;
