@@ -11,7 +11,7 @@ async function payload(markdown: string): Promise<string> {
 	return result.plain;
 }
 
-test("реестр площадок начинается с vc.ru", () => {
+test("реестр площадок содержит только vc.ru", () => {
 	assert.deepEqual(
 		PLATFORMS.map((platform) => platform.id),
 		["vcru"]
