@@ -1,8 +1,5 @@
 import { Menu } from "obsidian";
 
-/** Если подменю не отрисуется, поставить false: получатся три плоских пункта. */
-const USE_SUBMENU = true;
-
 const SUBMENU_TITLE = "Копировать для ...";
 
 export interface MenuPlatform {
@@ -18,7 +15,7 @@ export function copyLabel(platform: MenuPlatform): string {
 }
 
 export function addEditorMenu(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandler): void {
-	if (USE_SUBMENU && supportsSubmenu()) {
+	if (supportsSubmenu()) {
 		addSubmenu(menu, platforms, onCopy);
 		return;
 	}
