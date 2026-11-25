@@ -1,0 +1,42 @@
+[
+  {
+    "markdown": "## Глава",
+    "payload": "Глава"
+  },
+  {
+    "markdown": "Текст с **жирным**",
+    "payload": "Текст с жирным"
+  },
+  {
+    "markdown": "- Раз\n- Два",
+    "payload": "- Раз\n- Два"
+  },
+  {
+    "markdown": "1. Раз\n2. Два",
+    "payload": "- Раз\n- Два"
+  },
+  {
+    "markdown": "> Цитата\n> Вторая",
+    "payload": "> Цитата\n> Вторая"
+  },
+  {
+    "markdown": "> [!note] Важно\n> Текст",
+    "payload": "> Важно\n> Текст"
+  },
+  {
+    "markdown": "~~~\nconst x = 1;\n~~~",
+    "payload": "const x = 1;"
+  },
+  {
+    "markdown": "| A | B |\n|---|---|\n| 1 | 2 |",
+    "payload": "| A | B |\n|---|---|\n| 1 | 2 |"
+  },
+  {
+    "markdown": "![[star.png|64]]",
+    "payload": "![[star.png|64]]"
+  },
+  {
+    "markdown": "---",
+    "payload": "***"
+  }
+]

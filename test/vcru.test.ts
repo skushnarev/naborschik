@@ -29,14 +29,52 @@ test("payload статьи совпадает с golden прототипа", asy
 });
 
 test("одиночный блок отдаётся читаемым текстом", async () => {
-	assert.equal(await payload("## Глава"), "Глава");
-	assert.equal(await payload("Текст с **жирным**"), "Текст с жирным");
-	assert.equal(await payload("- Раз\n- Два"), "- Раз\n- Два");
-	assert.equal(await payload("> Цитата\n> Вторая"), "> Цитата\n> Вторая");
-	assert.equal(await payload("~~~\nconst x = 1;\n~~~"), "const x = 1;");
-	assert.equal(await payload("| A | B |\n|---|---|\n| 1 | 2 |"), "| A | B |\n|---|---|\n| 1 | 2 |");
-	assert.equal(await payload("![[star.png|64]]"), "![[star.png|64]]");
-	assert.equal(await payload("---"), "***");
+	const cases: Array<{ markdown: string; payload: string }> = JSON.parse(
+		readFileSync(new URL("./fixtures/vcru-single.json", import.meta.url), "utf8")
+	);
+
+	for (const item of cases) {
+		assert.equal(await payload(item.markdown), item.payload, item.markdown);
+	}
+});
+
+test("документ со всеми типами блоков проходит адаптер", async () => {
+	const markdown = [
+		"## Глава",
+		"",
+		"Текст",
+		"",
+		"- Раз",
+		"",
+		"> Цитата",
+		"",
+		"~~~js",
+		"const x = 1;",
+		"~~~",
+		"",
+		"| A | B |",
+		"|---|---|",
+		"| 1 | 2 |",
+		"",
+		"---",
+		"",
+		"![[star.png|64]]"
+	].join("\n");
+	const doc = parse(markdown, { images: () => ({ src: "data:image/png;base64,AAAA", width: 16 }) });
+	const result = await vcruAdapter.convert(doc, { warnings: doc.warnings });
+	const blocks = result.plain.split("\n\n");
+
+	assert.equal(blocks.length, 8);
+	assert.deepEqual(
+		blocks.map((block) => block.slice(0, block.indexOf(":"))),
+		["[header", "[text", "[list", "[quote", "[code", "[code", "[delimiter", "[text"]
+	);
+
+	for (const block of blocks) {
+		const match = block.match(/^\[(?:header|text|list|quote|code|delimiter):(.*)\]$/s);
+		assert.ok(match, block);
+		assert.doesNotThrow(() => JSON.parse(match[1] ?? ""), block);
+	}
 });
 
 test("смешанный документ собирает tool-блоки через пустую строку", async () => {

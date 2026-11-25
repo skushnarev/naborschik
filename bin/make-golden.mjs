@@ -60,3 +60,28 @@ writeFileSync(
 );
 
 writeFileSync(join(root, "test", "fixtures", "article.vcru.txt"), C.toVcruPayload(blocks) + "\n");
+
+const singleCases = [
+	"## Глава",
+	"Текст с **жирным**",
+	"- Раз\n- Два",
+	"1. Раз\n2. Два",
+	"> Цитата\n> Вторая",
+	"> [!note] Важно\n> Текст",
+	"~~~\nconst x = 1;\n~~~",
+	"| A | B |\n|---|---|\n| 1 | 2 |",
+	"![[star.png|64]]",
+	"---"
+];
+
+writeFileSync(
+	join(root, "test", "fixtures", "vcru-single.json"),
+	JSON.stringify(
+		singleCases.map((markdown) => ({
+			markdown,
+			payload: C.toVcruPayload(C.toBlocks(markdown))
+		})),
+		null,
+		2
+	) + "\n"
+);
