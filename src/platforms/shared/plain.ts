@@ -1,5 +1,5 @@
-import { htmlToText } from "../core/html.ts";
-import type { Block } from "../core/types.ts";
+import { htmlToText } from "../../core/html.ts";
+import type { Block } from "../../core/types.ts";
 
 /**
  * Читаемый запасной текст для площадок, которые получают HTML.

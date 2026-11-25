@@ -1,5 +1,5 @@
-import { escapeAttr } from "../core/html.ts";
-import type { Block } from "../core/types.ts";
+import { escapeAttr } from "../../core/html.ts";
+import type { Block } from "../../core/types.ts";
 
 export function renderList(block: Extract<Block, { type: "list" }>): string {
 	const tag = block.ordered ? "ol" : "ul";

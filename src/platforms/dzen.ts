@@ -1,7 +1,7 @@
 import { escapeHtml, escapeLines } from "../core/html.ts";
 import type { Block, ClipboardPayload, ConvertContext, PlatformAdapter } from "../core/types.ts";
-import { renderImage, renderList } from "./html.ts";
-import { toPlainText } from "./plain.ts";
+import { renderImage, renderList } from "./shared/html.ts";
+import { toPlainText } from "./shared/plain.ts";
 
 /**
  * Дзен принимает HTML. Код деградирует в цитату без `pre`, таблица
