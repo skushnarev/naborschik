@@ -146,6 +146,7 @@ interface PlatformAdapter {
 - `PM-07` - доки и глоссарий.
 - `PM-08` - исправить итоговую строку `make status`.
 - `PM-09` - картинки из хранилища, milestone `later`.
+- `PM-10` - тесты записи в буфер без системной зависимости.
 
 Area `obsidian-plugin`, milestone `next`. PM-01 и PM-08 стартуют сразу, остальные заблокированы предыдущими. PM-09 идёт после живого прогона в milestone `later`.
 
