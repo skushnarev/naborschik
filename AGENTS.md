@@ -32,9 +32,10 @@
 - `make status ARGS="--area vc-converter"` - по эпику.
 - `make status ARGS="--check"` - схема, ссылки, циклы блокировок.
 - `make docs-check` - задачи плюс запрет чеклистов и статусов в доках.
+- `make core-check` - ядро и адаптеры не импортируют `obsidian`.
 - `make test` - Node-тесты плагина.
 - `make test-proto` - Node-тесты прототипа.
-- `make check` - `docs-check`, типы, тесты плагина и прототипа, сборка.
+- `make check` - `docs-check`, проверка чистоты ядра, типы, тесты плагина и прототипа, сборка.
 - `make prototype` - открыть прототип в браузере.
 - `make plugin-link VAULT=/путь/к/хранилищу` - собрать плагин и поставить симлинк на `dist/` в хранилище.
 - `make agents` - обновить симлинк `.opencode/commands`, после клонирования достаточно одного раза.

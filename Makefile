@@ -1,4 +1,4 @@
-.PHONY: status docs-check typecheck test test-proto check build dev hooks agents prototype prototype-serve plugin-link help
+.PHONY: status docs-check core-check typecheck test test-proto check build dev hooks agents prototype prototype-serve plugin-link help
 
 help: ## Показать цели
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -8,6 +8,9 @@ status: ## Задачи: открытые (ARGS="VC-01..VC-05")
 
 docs-check: ## Проверить задачи и запретить чеклисты в доках
 	node bin/docs-check.mjs
+
+core-check: ## Проверить, что ядро не импортирует obsidian
+	node bin/core-check.mjs
 
 typecheck: ## Проверить типы TypeScript
 	./node_modules/.bin/tsc --noEmit
@@ -24,7 +27,7 @@ build: ## Собрать плагин в dist
 dev: ## Сборка плагина с watch
 	node esbuild.config.mjs
 
-check: docs-check typecheck test test-proto build ## Все проверки проекта
+check: docs-check core-check typecheck test test-proto build ## Все проверки проекта
 
 hooks: ## Поставить pre-commit с make check
 	@if [ -f .git/hooks/pre-commit ] && ! grep -q "make check" .git/hooks/pre-commit; then \
