@@ -13,3 +13,11 @@ test("манифест сохраняет идентичность и верси
 	assert.equal(manifest.minAppVersion, "1.5.0");
 	assert.equal(manifest.isDesktopOnly, true);
 });
+
+test("версия манифеста совпадает с версией пакета", () => {
+	const pkg: Record<string, unknown> = JSON.parse(
+		readFileSync(new URL("../package.json", import.meta.url), "utf8")
+	);
+
+	assert.equal(manifest.version, pkg.version);
+});
