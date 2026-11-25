@@ -174,6 +174,7 @@ src/
   platforms/vcru.ts       Document в [tool:...]
   platforms/dzen.ts       Document в HTML для Дзена
   platforms/smartlab.ts   Document в HTML для Смартлаба
+  platforms/shared/       общие рендеры списка, картинки и читаемого plain
 test/
   fixtures/               входные статьи и golden-выходы
 dist/                     main.js и manifest.json, в .gitignore
