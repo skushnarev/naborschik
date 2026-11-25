@@ -27,6 +27,10 @@ dev: ## Сборка плагина с watch
 check: docs-check typecheck test test-proto build ## Все проверки проекта
 
 hooks: ## Поставить pre-commit с make check
+	@if [ -f .git/hooks/pre-commit ] && ! grep -q "make check" .git/hooks/pre-commit; then \
+		echo "В .git/hooks/pre-commit уже есть другой хук, уберите его вручную."; \
+		exit 1; \
+	fi
 	@printf '#!/bin/sh\nexec make check\n' > .git/hooks/pre-commit
 	@chmod +x .git/hooks/pre-commit
 	@echo "Pre-commit: .git/hooks/pre-commit -> make check"
