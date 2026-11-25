@@ -2,7 +2,6 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { parse } from "../src/core/parse.ts";
-import { PLATFORMS } from "../src/platforms/index.ts";
 import { vcruAdapter } from "../src/platforms/vcru.ts";
 
 async function payload(markdown: string): Promise<string> {
@@ -10,13 +9,6 @@ async function payload(markdown: string): Promise<string> {
 	const result = await vcruAdapter.convert(doc, { warnings: doc.warnings });
 	return result.plain;
 }
-
-test("реестр площадок содержит только vc.ru", () => {
-	assert.deepEqual(
-		PLATFORMS.map((platform) => platform.id),
-		["vcru"]
-	);
-});
 
 test("payload статьи совпадает с golden прототипа", async () => {
 	const markdown = readFileSync(new URL("./fixtures/article.md", import.meta.url), "utf8");

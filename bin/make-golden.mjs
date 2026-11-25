@@ -60,6 +60,7 @@ writeFileSync(
 );
 
 writeFileSync(join(root, "test", "fixtures", "article.vcru.txt"), C.toVcruPayload(blocks) + "\n");
+writeFileSync(join(root, "test", "fixtures", "article.dzen.html"), C.toDzenHtml(blocks) + "\n");
 
 const singleCases = [
 	"## Глава",
@@ -80,6 +81,18 @@ writeFileSync(
 		singleCases.map((markdown) => ({
 			markdown,
 			payload: C.toVcruPayload(C.toBlocks(markdown))
+		})),
+		null,
+		2
+	) + "\n"
+);
+
+writeFileSync(
+	join(root, "test", "fixtures", "dzen-single.json"),
+	JSON.stringify(
+		singleCases.map((markdown) => ({
+			markdown,
+			html: C.toDzenHtml(C.toBlocks(markdown))
 		})),
 		null,
 		2
