@@ -6,9 +6,10 @@ const manifest: Record<string, unknown> = JSON.parse(
 	readFileSync(new URL("../manifest.json", import.meta.url), "utf8")
 );
 
-test("манифест пригоден для Obsidian", () => {
+test("манифест сохраняет идентичность и версию", () => {
 	assert.equal(manifest.id, "naborschik");
+	assert.equal(manifest.name, "Naborschik");
+	assert.equal(manifest.version, "0.0.1");
+	assert.equal(manifest.minAppVersion, "1.5.0");
 	assert.equal(manifest.isDesktopOnly, true);
-	assert.match(String(manifest.version), /^\d+\.\d+\.\d+$/);
-	assert.match(String(manifest.minAppVersion), /^\d+\.\d+\.\d+$/);
 });
