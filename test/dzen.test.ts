@@ -88,6 +88,61 @@ test("картинка с src становится img без предупреж
 	assert.deepEqual(result.warnings, []);
 });
 
+test("без размера в ссылке берётся ширина резолвера", async () => {
+	const src = "data:image/png;base64,AAAA";
+	const result = await convert("![[star.png]]", { images: () => ({ src, width: 16 }) });
+
+	assert.equal(result.html, '<img src="' + src + '" alt="star.png" width="16">');
+});
+
+test("таблица экранирует символы из ячеек", async () => {
+	const result = await convert("| A | B |\n|---|---|\n| x & y | <z> |");
+
+	assert.ok(result.html.includes("x &amp; y"));
+	assert.ok(result.html.includes("&lt;z&gt;"));
+	assert.ok(!result.html.includes("<z>"));
+});
+
+test("документ со всеми типами блоков проходит адаптер", async () => {
+	const markdown = [
+		"## Глава",
+		"",
+		"Текст",
+		"",
+		"- Раз",
+		"",
+		"> Цитата",
+		"",
+		"~~~js",
+		"const x = 1;",
+		"~~~",
+		"",
+		"| A | B |",
+		"|---|---|",
+		"| 1 | 2 |",
+		"",
+		"---",
+		"",
+		"![[star.png|64]]"
+	].join("\n");
+	const result = await convert(markdown, {
+		images: () => ({ src: "data:image/png;base64,AAAA", width: 16 })
+	});
+
+	assert.ok(result.html.includes("<h2>Глава</h2>"));
+	assert.ok(result.html.includes("<p>Текст</p>"));
+	assert.ok(result.html.includes("<ul>\n<li>Раз</li>\n</ul>"));
+	assert.ok(result.html.includes("<blockquote><p>Цитата</p></blockquote>"));
+	assert.ok(result.html.includes("<blockquote><p>const x = 1;</p></blockquote>"));
+	assert.ok(result.html.includes("<ul>\n<li><b>A:</b> 1; <b>B:</b> 2</li>\n</ul>"));
+	assert.ok(result.html.includes("<p>* * *</p>"));
+	assert.ok(result.html.includes('alt="star.png" width="64"'));
+	assert.deepEqual(
+		result.warnings.map((warning) => warning.code),
+		["code-degraded", "table-degraded"]
+	);
+});
+
 test("разделитель и пустой вход", async () => {
 	assert.equal((await convert("---")).html, "<p>* * *</p>");
 	assert.equal((await convert("")).html, "");
