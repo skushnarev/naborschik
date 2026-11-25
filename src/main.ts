@@ -1,12 +1,9 @@
 import { Notice, Plugin, type Editor } from "obsidian";
-import { writePlainText } from "./plugin/clipboard";
-import { addEditorMenu, copyLabel, type MenuPlatform } from "./plugin/menu";
-
-const PLATFORMS: MenuPlatform[] = [
-	{ id: "vcru", menuTitle: "vc.ru", forWhom: "vc.ru" },
-	{ id: "dzen", menuTitle: "Дзен", forWhom: "Дзена" },
-	{ id: "smartlab", menuTitle: "Смартлаб", forWhom: "Смартлаба" }
-];
+import { parse } from "./core/parse.ts";
+import type { PlatformAdapter } from "./core/types.ts";
+import { writePayload } from "./plugin/clipboard.ts";
+import { addEditorMenu, copyLabel } from "./plugin/menu.ts";
+import { PLATFORMS } from "./platforms/index.ts";
 
 const EMPTY_NOTICE = "Нечего копировать";
 const BUFFER_NOTICE = "Не удалось записать в буфер";
@@ -28,25 +25,36 @@ export default class NaborschikPlugin extends Plugin {
 		);
 	}
 
-	private async copyFor(platform: MenuPlatform, editor: Editor): Promise<void> {
+	private async copyFor(platform: PlatformAdapter, editor: Editor): Promise<void> {
+		// Выделение важнее заметки целиком: пустое выделение это сигнал взять всё.
 		const selection = editor.getSelection();
 		const source = selection !== "" ? selection : editor.getValue();
+		const parsed = parse(source);
 
-		if (source === "") {
+		if (parsed.blocks.length === 0) {
 			new Notice(EMPTY_NOTICE);
 			return;
 		}
 
-		const payload = "Для " + platform.forWhom + "\n\n" + source;
+		const context = { warnings: parsed.warnings };
+		const payload = await platform.convert(parsed, context);
 
 		try {
-			await writePlainText(payload);
+			await writePayload(payload);
 		} catch (error) {
 			console.error("naborschik: не удалось записать в буфер", error);
 			new Notice(BUFFER_NOTICE);
 			return;
 		}
 
-		new Notice("Скопировано для " + platform.forWhom + ", символов: " + source.length);
+		for (const warning of context.warnings) {
+			console.warn("naborschik: " + warning.code + ": " + warning.message);
+		}
+
+		let notice = "Скопировано для " + platform.forWhom + ", символов: " + payload.plain.length;
+		if (context.warnings.length > 0) {
+			notice += ", предупреждений: " + context.warnings.length;
+		}
+		new Notice(notice);
 	}
 }

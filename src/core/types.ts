@@ -40,6 +40,8 @@ export type ImageResolver = (name: string) => { src: string; width: number | nul
 export interface PlatformAdapter {
 	id: string;
 	title: string;
+	/** Форма для фраз «Копировать для ...» и уведомления. */
+	forWhom: string;
 	icon: string;
 	convert(doc: Document, ctx: ConvertContext): Promise<ClipboardPayload>;
 }

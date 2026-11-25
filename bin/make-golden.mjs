@@ -58,3 +58,5 @@ writeFileSync(
 	join(root, "test", "fixtures", "article.expected.json"),
 	JSON.stringify({ blocks: neutral, warnings }, null, 2) + "\n"
 );
+
+writeFileSync(join(root, "test", "fixtures", "article.vcru.txt"), C.toVcruPayload(blocks) + "\n");

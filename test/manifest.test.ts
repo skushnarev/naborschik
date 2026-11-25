@@ -9,7 +9,7 @@ const manifest: Record<string, unknown> = JSON.parse(
 test("манифест сохраняет идентичность и версию", () => {
 	assert.equal(manifest.id, "naborschik");
 	assert.equal(manifest.name, "Naborschik");
-	assert.equal(manifest.version, "0.0.1");
+	assert.equal(manifest.version, "0.1.0");
 	assert.equal(manifest.minAppVersion, "1.5.0");
 	assert.equal(manifest.isDesktopOnly, true);
 });

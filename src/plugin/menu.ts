@@ -1,20 +1,15 @@
 import { Menu } from "obsidian";
+import type { PlatformAdapter } from "../core/types.ts";
 
 const SUBMENU_TITLE = "Копировать для ...";
 
-export interface MenuPlatform {
-	id: string;
-	menuTitle: string;
-	forWhom: string;
-}
+export type CopyHandler = (platform: PlatformAdapter) => void;
 
-export type CopyHandler = (platform: MenuPlatform) => void;
-
-export function copyLabel(platform: MenuPlatform): string {
+export function copyLabel(platform: PlatformAdapter): string {
 	return "Копировать для " + platform.forWhom;
 }
 
-export function addEditorMenu(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandler): void {
+export function addEditorMenu(menu: Menu, platforms: PlatformAdapter[], onCopy: CopyHandler): void {
 	if (supportsSubmenu()) {
 		addSubmenu(menu, platforms, onCopy);
 		return;
@@ -22,7 +17,7 @@ export function addEditorMenu(menu: Menu, platforms: MenuPlatform[], onCopy: Cop
 	addFlatItems(menu, platforms, onCopy);
 }
 
-function addSubmenu(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandler): void {
+function addSubmenu(menu: Menu, platforms: PlatformAdapter[], onCopy: CopyHandler): void {
 	try {
 		menu.addItem((item) => {
 			item.setTitle(SUBMENU_TITLE);
@@ -35,7 +30,7 @@ function addSubmenu(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandler):
 
 			const submenu = setSubmenu.call(item);
 			for (const platform of platforms) {
-				addCopyItem(submenu, platform.menuTitle, platform, onCopy);
+				addCopyItem(submenu, platform.title, platform, onCopy);
 			}
 		});
 	} catch (error) {
@@ -52,12 +47,21 @@ function supportsSubmenu(): boolean {
 	return supported;
 }
 
-function addFlatItems(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandler): void {
+function addFlatItems(menu: Menu, platforms: PlatformAdapter[], onCopy: CopyHandler): void {
 	for (const platform of platforms) {
 		addCopyItem(menu, copyLabel(platform), platform, onCopy);
 	}
 }
 
-function addCopyItem(menu: Menu, title: string, platform: MenuPlatform, onCopy: CopyHandler): void {
-	menu.addItem((item) => item.setTitle(title).onClick(() => onCopy(platform)));
+function addCopyItem(
+	menu: Menu,
+	title: string,
+	platform: PlatformAdapter,
+	onCopy: CopyHandler
+): void {
+	menu.addItem((item) => {
+		item.setTitle(title);
+		if (platform.icon) item.setIcon(platform.icon);
+		item.onClick(() => onCopy(platform));
+	});
 }

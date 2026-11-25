@@ -1,0 +1,31 @@
+[text:{"text":"<p>Вступление с <b>жирным</b>, <i>курсивом</i>, кодом и <a href=\"https://ya.ru\">ссылкой</a>. Символы &amp; &lt; &gt;.</p>"}]
+
+[header:{"text":"Глава","style":"h2"}]
+
+[header:{"text":"Раздел","style":"h3"}]
+
+[text:{"text":"<p><b>Подраздел</b></p>"}]
+
+[text:{"text":"<p><b>Мелкий</b></p>"}]
+
+[text:{"text":"<p><b>Самый мелкий</b></p>"}]
+
+[quote:{"text":"<p><b>Важно</b><br>Проверить вставку после публикации.</p>","subline1":""}]
+
+[quote:{"text":"<p>Обычная цитата с <b>акцентом</b>.</p>","subline1":""}]
+
+[list:{"type":"UL","items":["Первый пункт","Второй пункт","↳ Вложенный пункт","☑ Сделано","☐ Осталось"]}]
+
+[list:{"type":"OL","items":["Раз","Два"]}]
+
+[code:{"text":"const x = 1;\nconsole.log(x);","lang":"javascript","lineWrapping":false}]
+
+[code:{"text":"| Колонка | Значение |\n|:---|---:|\n| A | 1 |\n| B | 2 |","lang":"","lineWrapping":false}]
+
+[delimiter:{"type":"default"}]
+
+[text:{"text":"<p>Ссылка на [[Папка/Заметка|алиас]] и подсветка важная.</p>"}]
+
+[text:{"text":"<p>![[star.png|64]]</p>"}]
+
+[text:{"text":"<p>Картинка внутри абзаца ![alt](https://example.com/a.png) остаётся текстом.</p>"}]
