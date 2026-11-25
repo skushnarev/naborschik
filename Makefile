@@ -1,4 +1,4 @@
-.PHONY: status docs-check core-check typecheck test test-proto check build dev hooks agents prototype prototype-serve plugin-link help
+.PHONY: status docs-check core-check typecheck test test-proto check build dev golden hooks agents prototype prototype-serve plugin-link help
 
 help: ## Показать цели
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -28,6 +28,9 @@ dev: ## Сборка плагина с watch
 	node esbuild.config.mjs
 
 check: docs-check core-check typecheck test test-proto build ## Все проверки проекта
+
+golden: ## Пересобрать golden-фикстуру из прототипа
+	node bin/make-golden.mjs
 
 hooks: ## Поставить pre-commit с make check
 	@if [ -f .git/hooks/pre-commit ] && ! grep -q "make check" .git/hooks/pre-commit; then \
