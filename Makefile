@@ -1,4 +1,4 @@
-.PHONY: status docs-check typecheck test test-plugin test-prototype check build dev hooks agents prototype prototype-serve plugin-link help
+.PHONY: status docs-check typecheck test test-proto check build dev hooks agents prototype prototype-serve plugin-link help
 
 help: ## Показать цели
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -12,12 +12,10 @@ docs-check: ## Проверить задачи и запретить чекли�
 typecheck: ## Проверить типы TypeScript
 	./node_modules/.bin/tsc --noEmit
 
-test: test-plugin test-prototype ## Все тесты
-
-test-plugin: ## Node-тесты плагина
+test: ## Node-тесты плагина
 	node --test test/*.test.ts
 
-test-prototype: ## Node-тесты конвертера
+test-proto: ## Node-тесты прототипа
 	node --test prototype/tests/*.test.mjs
 
 build: ## Собрать плагин в dist
@@ -26,7 +24,7 @@ build: ## Собрать плагин в dist
 dev: ## Сборка плагина с watch
 	node esbuild.config.mjs
 
-check: docs-check typecheck test build ## Все проверки проекта
+check: docs-check typecheck test test-proto build ## Все проверки проекта
 
 hooks: ## Поставить pre-commit с make check
 	@printf '#!/bin/sh\nexec make check\n' > .git/hooks/pre-commit

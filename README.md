@@ -63,11 +63,12 @@ make status ARGS="--check"
 npm install
 make docs-check
 make test
+make test-proto
 make check
 make hooks
 ```
 
-`make test` гоняет тесты плагина и прототипа. `make check` добавляет к ним типы и сборку. `make hooks` ставит pre-commit с `make check`.
+`make test` гоняет тесты плагина, `make test-proto` - тесты прототипа. `make check` добавляет к ним типы, оба набора тестов и сборку. `make hooks` ставит pre-commit с `make check`.
 
 `docs-check` проверяет front matter, ссылки, циклы блокировок и запрещает чеклисты и статусные таблицы в нарративных документах.
 

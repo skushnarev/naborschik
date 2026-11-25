@@ -32,8 +32,9 @@
 - `make status ARGS="--area vc-converter"` - по эпику.
 - `make status ARGS="--check"` - схема, ссылки, циклы блокировок.
 - `make docs-check` - задачи плюс запрет чеклистов и статусов в доках.
-- `make test` - Node-тесты конвертера.
-- `make check` - `docs-check` плюс Node-тесты.
+- `make test` - Node-тесты плагина.
+- `make test-proto` - Node-тесты прототипа.
+- `make check` - `docs-check`, типы, тесты плагина и прототипа, сборка.
 - `make prototype` - открыть прототип в браузере.
 - `make plugin-link VAULT=/путь/к/хранилищу` - поставить плагин-заглушку в хранилище симлинком.
 - `make agents` - обновить симлинк `.opencode/commands`, после клонирования достаточно одного раза.
