@@ -1,0 +1,42 @@
+[
+  {
+    "markdown": "## Глава",
+    "html": "<h3>Глава</h3>"
+  },
+  {
+    "markdown": "Текст с **жирным**",
+    "html": "<p>Текст с <b>жирным</b></p>"
+  },
+  {
+    "markdown": "- Раз\n- Два",
+    "html": "<ul>\n<li>Раз</li>\n<li>Два</li>\n</ul>"
+  },
+  {
+    "markdown": "1. Раз\n2. Два",
+    "html": "<ol>\n<li>Раз</li>\n<li>Два</li>\n</ol>"
+  },
+  {
+    "markdown": "> Цитата\n> Вторая",
+    "html": "<blockquote><p>Цитата<br>Вторая</p></blockquote>"
+  },
+  {
+    "markdown": "> [!note] Важно\n> Текст",
+    "html": "<blockquote><p><b>Важно</b><br>Текст</p></blockquote>"
+  },
+  {
+    "markdown": "~~~\nconst x = 1;\n~~~",
+    "html": "<pre>const x = 1;</pre>"
+  },
+  {
+    "markdown": "| A | B |\n|---|---|\n| 1 | 2 |",
+    "html": "<table>\n<thead>\n<tr><th>A</th><th>B</th></tr>\n</thead>\n<tbody>\n<tr><td>1</td><td>2</td></tr>\n</tbody>\n</table>"
+  },
+  {
+    "markdown": "![[star.png|64]]",
+    "html": "<p>![[star.png|64]]</p>"
+  },
+  {
+    "markdown": "---",
+    "html": "<hr>"
+  }
+]
