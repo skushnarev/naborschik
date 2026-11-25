@@ -13,14 +13,19 @@ export interface MenuPlatform {
 
 export type CopyHandler = (platform: MenuPlatform) => void;
 
+export function copyLabel(platform: MenuPlatform): string {
+	return "Копировать для " + platform.forWhom;
+}
+
 export function addEditorMenu(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandler): void {
-	if (USE_SUBMENU && tryAddSubmenu(menu, platforms, onCopy)) return;
+	if (USE_SUBMENU && supportsSubmenu()) {
+		addSubmenu(menu, platforms, onCopy);
+		return;
+	}
 	addFlatItems(menu, platforms, onCopy);
 }
 
-function tryAddSubmenu(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandler): boolean {
-	if (!supportsSubmenu()) return false;
-
+function addSubmenu(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandler): void {
 	try {
 		menu.addItem((item) => {
 			item.setTitle(SUBMENU_TITLE);
@@ -36,11 +41,9 @@ function tryAddSubmenu(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandle
 				addCopyItem(submenu, platform.menuTitle, platform, onCopy);
 			}
 		});
-		return true;
 	} catch (error) {
 		// Пункт уже мог попасть в меню, плоские копии дали бы четыре строки.
 		console.error("naborschik: подменю не добавилось", error);
-		return true;
 	}
 }
 
@@ -54,7 +57,7 @@ function supportsSubmenu(): boolean {
 
 function addFlatItems(menu: Menu, platforms: MenuPlatform[], onCopy: CopyHandler): void {
 	for (const platform of platforms) {
-		addCopyItem(menu, "Копировать для " + platform.forWhom, platform, onCopy);
+		addCopyItem(menu, copyLabel(platform), platform, onCopy);
 	}
 }
 

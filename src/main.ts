@@ -1,6 +1,6 @@
 import { Notice, Plugin, type Editor } from "obsidian";
 import { writePlainText } from "./plugin/clipboard";
-import { addEditorMenu, type MenuPlatform } from "./plugin/menu";
+import { addEditorMenu, copyLabel, type MenuPlatform } from "./plugin/menu";
 
 const PLATFORMS: MenuPlatform[] = [
 	{ id: "vcru", menuTitle: "vc.ru", forWhom: "vc.ru" },
@@ -16,7 +16,7 @@ export default class NaborschikPlugin extends Plugin {
 		for (const platform of PLATFORMS) {
 			this.addCommand({
 				id: "copy-for-" + platform.id,
-				name: "Копировать для " + platform.forWhom,
+				name: copyLabel(platform),
 				editorCallback: (editor) => this.copyFor(platform, editor)
 			});
 		}
