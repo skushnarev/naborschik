@@ -1,0 +1,22 @@
+{
+  "name": "naborschik",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Плагин Obsidian: Markdown статьи в блоки vc.ru и HTML для Дзена и Смартлаба.",
+  "scripts": {
+    "build": "node esbuild.config.mjs production",
+    "dev": "node esbuild.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts"
+  },
+  "dependencies": {
+    "marked": "18.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.7",
+    "esbuild": "^0.28.2",
+    "obsidian": "^1.14.4",
+    "typescript": "^7.0.2"
+  }
+}

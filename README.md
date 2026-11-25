@@ -36,10 +36,11 @@ make prototype
 ## Плагин
 
 ```bash
+npm install
 make plugin-link VAULT=/путь/к/хранилищу
 ```
 
-Цель ставит симлинк в `<хранилище>/.obsidian/plugins/naborschik`. Дальше в Obsidian включить сторонние плагины и `naborschik`. После правок переключить плагин или нажать `Cmd+R`.
+Цель собирает плагин в `dist/` и ставит симлинк `<хранилище>/.obsidian/plugins/naborschik` на эту папку. Дальше в Obsidian включить сторонние плагины и `naborschik`. После правок перезагрузить плагин или нажать `Cmd+R`.
 
 Пока это заглушка без конвертера: три команды `Копировать для vc.ru`, `Копировать для Дзена` и `Копировать для Смартлаба` кладут в буфер `Для <площадка>`, пустую строку и выделение как есть. Подробности и откат: `prototype/obsidian/README.md`.
 
@@ -59,10 +60,14 @@ make status ARGS="--check"
 ## Проверки
 
 ```bash
+npm install
 make docs-check
 make test
 make check
+make hooks
 ```
+
+`make test` гоняет тесты плагина и прототипа. `make check` добавляет к ним типы и сборку. `make hooks` ставит pre-commit с `make check`.
 
 `docs-check` проверяет front matter, ссылки, циклы блокировок и запрещает чеклисты и статусные таблицы в нарративных документах.
 

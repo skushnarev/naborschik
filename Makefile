@@ -1,4 +1,4 @@
-.PHONY: status docs-check test check agents prototype prototype-serve plugin-link help
+.PHONY: status docs-check typecheck test test-plugin test-prototype check build dev hooks agents prototype prototype-serve plugin-link help
 
 help: ## Показать цели
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -9,10 +9,29 @@ status: ## Задачи: открытые (ARGS="VC-01..VC-05")
 docs-check: ## Проверить задачи и запретить чеклисты в доках
 	node bin/docs-check.mjs
 
-test: ## Прогнать Node-тесты конвертера
+typecheck: ## Проверить типы TypeScript
+	./node_modules/.bin/tsc --noEmit
+
+test: test-plugin test-prototype ## Все тесты
+
+test-plugin: ## Node-тесты плагина
+	node --test test/*.test.ts
+
+test-prototype: ## Node-тесты конвертера
 	node --test prototype/tests/*.test.mjs
 
-check: docs-check test ## Все проверки проекта
+build: ## Собрать плагин в dist
+	node esbuild.config.mjs production
+
+dev: ## Сборка плагина с watch
+	node esbuild.config.mjs
+
+check: docs-check typecheck test build ## Все проверки проекта
+
+hooks: ## Поставить pre-commit с make check
+	@printf '#!/bin/sh\nexec make check\n' > .git/hooks/pre-commit
+	@chmod +x .git/hooks/pre-commit
+	@echo "Pre-commit: .git/hooks/pre-commit -> make check"
 
 agents: ## Обновить симлинк команд OpenCode
 	@mkdir -p .opencode
@@ -30,6 +49,7 @@ plugin-link: ## Поставить плагин в хранилище симли
 	@test -n "$(VAULT)" || { echo "Укажите хранилище: make plugin-link VAULT=/путь/к/хранилищу"; exit 1; }
 	@test -d "$(VAULT)" || { echo "Нет такого хранилища: $(VAULT)"; exit 1; }
 	@test -d "$(VAULT)/.obsidian" || { echo "Похоже, это не хранилище Obsidian: $(VAULT)"; exit 1; }
+	@$(MAKE) --no-print-directory build
 	@mkdir -p "$(VAULT)/.obsidian/plugins"
-	@ln -sfn "$(CURDIR)/prototype/obsidian" "$(VAULT)/.obsidian/plugins/naborschik"
-	@echo "Плагин: $(VAULT)/.obsidian/plugins/naborschik -> prototype/obsidian"
+	@ln -sfn "$(CURDIR)/dist" "$(VAULT)/.obsidian/plugins/naborschik"
+	@echo "Плагин: $(VAULT)/.obsidian/plugins/naborschik -> dist"
