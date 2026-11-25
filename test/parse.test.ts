@@ -172,6 +172,24 @@ test("резолвер без ширины в записи берёт ширин
 	]);
 });
 
+test("резолвер ищет файл по имени без папки", () => {
+	const src = "data:image/png;base64,AAAA";
+	const doc = parse("![[BLG/star.png]]", {
+		images: (name) => (name === "star.png" ? { src, width: null } : null)
+	});
+
+	assert.deepEqual(doc.blocks, [
+		{ type: "image", src, alt: "star.png", width: null, raw: "![[BLG/star.png]]" }
+	]);
+});
+
+test("вставка заметки остаётся текстом без предупреждения", () => {
+	assert.deepEqual(parse("![[Заметка]]"), {
+		blocks: [{ type: "text", html: "<p>![[Заметка]]</p>", text: "![[Заметка]]" }],
+		warnings: []
+	});
+});
+
 test("картинка внутри абзаца остаётся текстом", () => {
 	const src = "data:image/png;base64,AAAA";
 	const doc = parse("До ![[star.png|64]] после", { images: () => ({ src, width: 16 }) });

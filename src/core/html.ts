@@ -2,11 +2,15 @@ export function escapeHtml(value: string): string {
 	return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+export function escapeLines(value: string): string {
+	return escapeHtml(value).replace(/\n/g, "<br>");
+}
+
 export function escapeAttr(value: string): string {
 	return escapeHtml(value).replace(/"/g, "&quot;");
 }
 
-export function decodeEntities(value: string): string {
+function decodeEntities(value: string): string {
 	return String(value).replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, (match, entity: string) => {
 		if (entity === "amp") return "&";
 		if (entity === "lt") return "<";
@@ -31,8 +35,4 @@ export function htmlToText(html: string): string {
 			.replace(/<\/p>\s*<p>/gi, "\n")
 			.replace(/<[^>]+>/g, "")
 	);
-}
-
-export function stripTags(html: string): string {
-	return htmlToText(html).trim();
 }

@@ -1,5 +1,5 @@
 import { lexer, type Token, type Tokens } from "marked";
-import { escapeAttr, escapeHtml, htmlToText } from "./html.ts";
+import { escapeAttr, escapeHtml, escapeLines, htmlToText } from "./html.ts";
 import { normalizeLang } from "./lang.ts";
 import type { Block, Document, ImageResolver, ListItem, Warning } from "./types.ts";
 
@@ -57,7 +57,7 @@ export function parse(markdown: string, options: ParseOptions = {}): Document {
 
 			case "paragraph": {
 				const paragraph = token as Tokens.Paragraph;
-				const image = imageFromTokens(paragraph.tokens, state);
+				const image = imageFromParagraph(paragraph.tokens, state);
 				if (image) {
 					blocks.push({ type: "image", src: image.src, alt: image.alt, width: image.width, raw: image.raw });
 					break;
@@ -105,7 +105,7 @@ export function parse(markdown: string, options: ParseOptions = {}): Document {
 			case "html": {
 				const html = token as Tokens.HTML;
 				const raw = html.text ?? html.raw;
-				const escaped = escapeHtml(raw).trim().replace(/\n/g, "<br>");
+				const escaped = escapeLines(raw).trim();
 				const text = htmlToText(escaped).trim();
 				if (text) blocks.push({ type: "text", html: "<p>" + escaped + "</p>", text });
 				break;
@@ -235,15 +235,21 @@ function resolveImage(match: string, state: ParseState): ResolvedImage | null {
 	}
 
 	const name = target.split("/").pop() || target;
-	const resolved = state.images?.(target) ?? null;
+	const looksLikeImage = /\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i.test(name);
+	const resolved = state.images?.(target) ?? state.images?.(name) ?? null;
 	const src = resolved?.src;
 
-	if (!src || !/^(data:image\/|https?:\/\/)/i.test(src)) {
-		state.warnings.push({ code: "image-unresolved", message: "Картинка не найдена: " + target });
-		return null;
+	if (src && /^(data:image\/|https?:\/\/)/i.test(src)) {
+		return { raw: match, src, alt: name, width: width ?? resolved?.width ?? null };
 	}
 
-	return { raw: match, src, alt: name, width: width ?? resolved?.width ?? null };
+	// Вставка заметки это не картинка: без резолвера её не отличить от фото,
+	// поэтому предупреждаем только о том, что выглядит как файл изображения.
+	if (looksLikeImage) {
+		state.warnings.push({ code: "image-unresolved", message: "Картинка не найдена: " + target });
+	}
+
+	return null;
 }
 
 function textPlaceholder(value: string, state: ParseState): string {
@@ -258,17 +264,17 @@ function imagePlaceholder(image: ResolvedImage, state: ParseState): string {
 	return "@@NABORSCHIK_IMG_" + index + "@@";
 }
 
-function imageFromTokens(tokens: Token[] | undefined, state: ParseState): ResolvedImage | null {
+function imageFromParagraph(tokens: Token[] | undefined, state: ParseState): ResolvedImage | null {
 	if (!tokens || tokens.length !== 1) return null;
 
 	const only = tokens[0];
 	if (!only || only.type !== "text") return null;
 
 	const text = only as Tokens.Text;
-	return imageFromToken(text.text, state) ?? imageFromToken(text.raw, state);
+	return imageFromPlaceholder(text.text, state) ?? imageFromPlaceholder(text.raw, state);
 }
 
-function imageFromToken(text: string, state: ParseState): ResolvedImage | null {
+function imageFromPlaceholder(text: string, state: ParseState): ResolvedImage | null {
 	const match = String(text || "").trim().match(/^@@NABORSCHIK_IMG_(\d+)@@$/);
 	if (!match) return null;
 	return state.imageTokens[Number(match[1])] ?? null;
@@ -290,7 +296,7 @@ function renderInlineToken(token: Token, state: ParseState): string {
 	switch (token.type) {
 		case "text": {
 			const text = token as Tokens.Text;
-			return (text.escaped ? text.text : escapeHtml(text.text)).replace(/\n/g, "<br>");
+			return text.escaped ? text.text.replace(/\n/g, "<br>") : escapeLines(text.text);
 		}
 		case "escape":
 			return escapeHtml((token as Tokens.Escape).text);
@@ -350,7 +356,7 @@ function flattenList(token: Tokens.List, state: ParseState, level = 0): ListItem
 			} else if ("tokens" in child && child.tokens) {
 				parts.push(renderInline(child.tokens, state));
 			} else if ("text" in child && child.text != null) {
-				parts.push(escapeHtml(String(child.text)).replace(/\n/g, "<br>"));
+				parts.push(escapeLines(String(child.text)));
 			}
 		}
 
@@ -379,7 +385,7 @@ function quoteToHtml(token: Tokens.Blockquote, state: ParseState): string {
 		if (child.type === "paragraph") {
 			parts.push(renderInline((child as Tokens.Paragraph).tokens, state).trim());
 		} else if (child.type === "text") {
-			parts.push(escapeHtml((child as Tokens.Text).text).replace(/\n/g, "<br>").trim());
+			parts.push(escapeLines((child as Tokens.Text).text).trim());
 		} else if (child.type === "list") {
 			parts.push(flattenList(child as Tokens.List, state).map((item) => item.html).join("<br>"));
 		}
