@@ -1,0 +1,5 @@
+[header:{"text":"Глава","style":"h2"}]
+
+[text:{"text":"<p>Текст до фото.</p>"}]
+
+[text:{"text":"![[star.png]]"}]

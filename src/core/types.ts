@@ -35,7 +35,12 @@ export type ConvertContext = {
 	images?: ImageResolver;
 };
 
-export type ImageResolver = (name: string) => { src: string; width: number | null } | null;
+export type ImageAsset = {
+	src: string;
+	width: number | null;
+};
+
+export type ImageResolver = (name: string) => ImageAsset | null;
 
 export interface PlatformAdapter {
 	id: string;

@@ -1,5 +1,6 @@
 import { lexer, type Token, type Tokens } from "marked";
 import { escapeAttr, escapeHtml, escapeLines, htmlToText } from "./html.ts";
+import { isImagePath, replaceImageEmbeds, type ImageEmbed } from "./images.ts";
 import { normalizeLang } from "./lang.ts";
 import type { Block, Document, ImageResolver, ListItem, Warning } from "./types.ts";
 
@@ -137,10 +138,11 @@ function preprocess(markdown: string, state: ParseState): string {
 	source = source.replace(/%%[\s\S]*?%%/g, "");
 
 	// Вставки и вики-ссылки остаются текстом как есть: замена ручная,
-	// а по [[ пользователь найдёт их поиском, как и картинки.
-	source = source.replace(/!\[\[[^\]]*\]\]/g, (match) => {
-		const image = resolveImage(match, state);
-		return image ? imagePlaceholder(image, state) : textPlaceholder(match, state);
+	// а по [[ пользователь найдёт их поиском. Картинки с найденным файлом
+	// подменяются плейсхолдером и становятся отдельным блоком.
+	source = replaceImageEmbeds(source, (embed) => {
+		const image = resolveImage(embed, state);
+		return image ? imagePlaceholder(image, state) : textPlaceholder(embed.raw, state);
 	});
 
 	source = source.replace(/\[\[[^\[\]]+\]\]/g, (match) => textPlaceholder(match, state));
@@ -222,30 +224,19 @@ function protectCode(source: string): ProtectedCode {
 	};
 }
 
-function resolveImage(match: string, state: ParseState): ResolvedImage | null {
-	const inner = match.replace(/^!\[\[/, "").replace(/\]\]$/, "");
-	const parts = inner.split("|");
-	const target = (parts.shift() ?? "").trim();
-	if (!target) return null;
-
-	let width: number | null = null;
-	for (const part of parts) {
-		const value = part.trim();
-		if (/^\d+$/.test(value)) width = Number(value);
-	}
-
+function resolveImage(embed: ImageEmbed, state: ParseState): ResolvedImage | null {
+	const { target, width } = embed;
 	const name = target.split("/").pop() || target;
-	const looksLikeImage = /\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i.test(name);
 	const resolved = state.images?.(target) ?? state.images?.(name) ?? null;
 	const src = resolved?.src;
 
 	if (src && /^(data:image\/|https?:\/\/)/i.test(src)) {
-		return { raw: match, src, alt: name, width: width ?? resolved?.width ?? null };
+		return { raw: embed.raw, src, alt: name, width: width ?? resolved?.width ?? null };
 	}
 
 	// Вставка заметки это не картинка: без резолвера её не отличить от фото,
 	// поэтому предупреждаем только о том, что выглядит как файл изображения.
-	if (looksLikeImage) {
+	if (isImagePath(name)) {
 		state.warnings.push({ code: "image-unresolved", message: "Картинка не найдена: " + target });
 	}
 

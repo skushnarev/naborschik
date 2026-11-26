@@ -2,6 +2,7 @@ import { Notice, Plugin, type Editor } from "obsidian";
 import { parse } from "./core/parse.ts";
 import type { ClipboardPayload, PlatformAdapter } from "./core/types.ts";
 import { writePayload } from "./plugin/clipboard.ts";
+import { loadImageResolver } from "./plugin/images.ts";
 import { addEditorMenu, copyLabel } from "./plugin/menu.ts";
 import { PLATFORMS } from "./platforms/index.ts";
 
@@ -30,7 +31,9 @@ export default class NaborschikPlugin extends Plugin {
 		// Выделение важнее заметки целиком: пустое выделение это сигнал взять всё.
 		const selection = editor.getSelection();
 		const source = selection !== "" ? selection : editor.getValue();
-		const parsed = parse(source);
+		const sourcePath = this.app.workspace.getActiveFile()?.path ?? "";
+		const images = await loadImageResolver(this.app, source, sourcePath);
+		const parsed = parse(source, { images });
 
 		if (parsed.blocks.length === 0) {
 			new Notice(EMPTY_NOTICE);
