@@ -11,7 +11,8 @@
 
 import { join, resolve } from "node:path";
 import { existsSync } from "node:fs";
-import { loadTasks, validate, matchesRange, MILESTONES, STATUSES } from "./lib/tasks.mjs";
+import { loadTasks, validate, MILESTONES, STATUSES } from "./lib/tasks.mjs";
+import { formatReport, selectTasks } from "./lib/report.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const selectors = [];
@@ -79,28 +80,20 @@ if (check) {
   process.exit(0);
 }
 
-let filtered = tasks;
-
-if (selectors.length > 0) {
-  filtered = filtered.filter((task) => selectors.some((selector) => matchesRange(task.id, selector)));
-}
-
+let statuses = null;
 if (statusFilter) {
   const wanted = statusFilter.split(",").map((item) => item.trim()).filter(Boolean);
   if (wanted.length === 0 || wanted.some((item) => !STATUSES.includes(item))) {
     fail(`--status принимает статусы через запятую: ${STATUSES.join(", ")}`);
   }
-  filtered = filtered.filter((task) => wanted.includes(task.status));
-} else if (selectors.length === 0 && !all) {
-  filtered = filtered.filter((task) => task.status !== "done");
+  statuses = wanted;
 }
 
-if (area) filtered = filtered.filter((task) => task.area === area);
-if (kind) filtered = filtered.filter((task) => task.kind === kind);
-if (milestone) filtered = filtered.filter((task) => task.milestone === milestone);
+const filters = { selectors, statuses, area, kind, milestone, all };
 
 if (json) {
-  const payload = filtered.map((task) => ({
+  const { shown } = selectTasks(tasks, filters);
+  const payload = shown.map((task) => ({
     id: task.id,
     title: task.title,
     status: task.status,
@@ -119,43 +112,7 @@ if (json) {
   process.exit(errors.length > 0 ? 1 : 0);
 }
 
-if (filtered.length === 0) {
-  console.log("Задачи не найдены.");
-  if (errors.length > 0) {
-    for (const error of errors) console.error(`WARN: ${error}`);
-    process.exit(1);
-  }
-  process.exit(0);
-}
-
-const rows = filtered.map((task) => [
-  task.id,
-  task.status,
-  task.severity || "-",
-  task.area,
-  task.milestone,
-  task.title,
-]);
-
-const widths = [10, 8, 4, 14, 13];
-const header = ["ID", "STATUS", "SEV", "AREA", "MILESTONE", "TITLE"];
-console.log(header.map((cell, index) => cell.padEnd(widths[index] ?? 0)).join(" "));
-for (const row of rows) {
-  console.log(row.map((cell, index) => (index === row.length - 1 ? cell : cell.padEnd(widths[index] ?? 0))).join(" "));
-}
-
-const counts = Object.fromEntries(STATUSES.map((status) => [status, 0]));
-const milestones = Object.fromEntries(MILESTONES.map((item) => [item, 0]));
-for (const task of filtered) {
-  counts[task.status] = (counts[task.status] ?? 0) + 1;
-  milestones[task.milestone] = (milestones[task.milestone] ?? 0) + 1;
-}
-
-console.log("");
-console.log(
-  `Всего: ${filtered.length} - todo ${counts.todo}, doing ${counts.doing}, blocked ${counts.blocked}, done ${counts.done}; ` +
-    MILESTONES.map((item) => `${item} ${milestones[item]}`).join(", "),
-);
+console.log(formatReport(tasks, filters));
 
 if (errors.length > 0) {
   console.error("");
