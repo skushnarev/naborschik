@@ -16,7 +16,7 @@ async function convert(
 	return { html: payload.html ?? "", plain: payload.plain, warnings };
 }
 
-test("html статьи совпадает с golden прототипа", async () => {
+test("html статьи совпадает с golden", async () => {
 	const markdown = readFileSync(new URL("./fixtures/article.md", import.meta.url), "utf8");
 	const expected = readFileSync(
 		new URL("./fixtures/article.smartlab.html", import.meta.url),
@@ -26,7 +26,7 @@ test("html статьи совпадает с golden прототипа", async 
 	assert.equal((await convert(markdown)).html, expected);
 });
 
-test("одиночные блоки совпадают с golden прототипа", async () => {
+test("одиночные блоки совпадают с golden", async () => {
 	const cases: Array<{ markdown: string; html: string }> = JSON.parse(
 		readFileSync(new URL("./fixtures/smartlab-single.json", import.meta.url), "utf8")
 	);

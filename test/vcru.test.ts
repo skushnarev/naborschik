@@ -10,7 +10,7 @@ async function payload(markdown: string): Promise<string> {
 	return result.plain;
 }
 
-test("payload статьи совпадает с golden прототипа", async () => {
+test("payload статьи совпадает с golden", async () => {
 	const markdown = readFileSync(new URL("./fixtures/article.md", import.meta.url), "utf8");
 	const expected = readFileSync(new URL("./fixtures/article.vcru.txt", import.meta.url), "utf8").replace(
 		/\n$/,

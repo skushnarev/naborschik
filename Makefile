@@ -1,4 +1,4 @@
-.PHONY: status docs-check core-check typecheck test test-proto check build dev golden public bump hooks agents prototype prototype-serve plugin-link help
+.PHONY: status docs-check core-check typecheck test check build dev golden public bump hooks agents plugin-link help
 
 help: ## Показать цели
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -18,18 +18,15 @@ typecheck: ## Проверить типы TypeScript
 test: ## Node-тесты плагина и веб-сборки
 	node --test test/*.test.ts
 
-test-proto: ## Node-тесты прототипа
-	node --test prototype/tests/*.test.mjs
-
 build: ## Собрать плагин в dist
 	node esbuild.config.mjs production
 
 dev: ## Сборка плагина с watch
 	node esbuild.config.mjs
 
-check: docs-check core-check typecheck test test-proto build ## Все проверки проекта
+check: docs-check core-check typecheck test build ## Все проверки проекта
 
-golden: ## Пересобрать golden-фикстуру из прототипа
+golden: ## Пересобрать golden-фикстуры из src
 	node bin/make-golden.mjs
 
 public: ## Собрать веб-конвертер в public/index.html (ARGS="папка")
@@ -51,13 +48,6 @@ agents: ## Обновить симлинк команд OpenCode
 	@mkdir -p .opencode
 	@ln -sfn ../.agents/commands .opencode/commands
 	@echo "Команды OpenCode: .opencode/commands -> .agents/commands"
-
-prototype: ## Открыть прототип в браузере
-	@open prototype/index.html
-
-prototype-serve: ## Открыть прототип через локальный сервер
-	@echo "http://localhost:4173/"
-	@python3 -m http.server 4173 --directory prototype
 
 plugin-link: ## Поставить плагин в хранилище симлинком (VAULT=/путь/к/хранилищу)
 	@test -n "$(VAULT)" || { echo "Укажите хранилище: make plugin-link VAULT=/путь/к/хранилищу"; exit 1; }

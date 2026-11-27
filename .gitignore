@@ -14,8 +14,5 @@ dist/
 # Сборка веб-конвертера
 public/
 
-# Obsidian может создать настройки рядом с плагином
-prototype/obsidian/data.json
-
 # Производный адаптер OpenCode, источник истины: .agents/commands
 .opencode/

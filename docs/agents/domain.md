@@ -17,7 +17,6 @@ Single-context, без `GLOSSARY-MAP.md`:
 /
 ├── GLOSSARY.md
 ├── docs/adr/
-├── prototype/
 └── .scratch/
 ```
 

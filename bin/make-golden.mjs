@@ -1,67 +1,35 @@
 import { readFileSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { join } from "node:path";
+import { parse } from "../src/core/parse.ts";
+import { dzenAdapter } from "../src/platforms/dzen.ts";
+import { smartlabAdapter } from "../src/platforms/smartlab.ts";
+import { vcruAdapter } from "../src/platforms/vcru.ts";
 
 /**
- * Пересобирает `test/fixtures/article.expected.json` из проверенного
- * прототипа. Запускать после правки `article.md`: `make golden`.
+ * Пересобирает golden-фикстуры из `src/`. Запускать после правки
+ * `article.md` или осознанного изменения выходов: `make golden`.
  *
- * Прототип отдаёт блоки с полями vc.ru, поэтому здесь они переводятся
- * в нейтральную модель `Document`. HTML, списки, таблицы и код берутся
- * из прототипа без изменений, это и есть golden.
+ * Источник истины это продакшен-разбор и адаптеры. Генератор обновляет
+ * эталоны, а не проверяет их, поэтому diff перед коммитом обязателен.
  */
-const require = createRequire(import.meta.url);
 const root = process.cwd();
-globalThis.marked = require(join(root, "prototype", "vendor", "marked.umd.js")).marked;
-const C = require(join(root, "prototype", "converter.js"));
+const fixtures = join(root, "test", "fixtures");
 
-const markdown = readFileSync(join(root, "test", "fixtures", "article.md"), "utf8");
-const blocks = C.toBlocks(markdown);
+const markdown = readFileSync(join(fixtures, "article.md"), "utf8");
+const doc = parse(markdown);
 
-function text(html) {
-	return C.htmlToText(html).trim();
+async function convert(adapter) {
+	return adapter.convert(doc, { warnings: [...doc.warnings] });
 }
 
-const neutral = blocks.map((block) => {
-	switch (block.type) {
-		case "header":
-			return { type: "header", level: Number(block.style.slice(1)), text: block.text };
-		case "text":
-			return { type: "text", html: block.html, text: text(block.html) };
-		case "list":
-			return {
-				type: "list",
-				ordered: block.listType === "OL",
-				items: block.items.map((html) => ({ html, text: text(html) }))
-			};
-		case "quote":
-			return { type: "quote", html: block.html, text: text(block.html) };
-		case "code":
-			return { type: "code", text: block.text, lang: block.lang };
-		case "table":
-			return { type: "table", headers: block.headers, rows: block.rows, align: block.align, raw: block.raw };
-		case "delimiter":
-			return { type: "delimiter" };
-		default:
-			throw new Error("неожиданный блок: " + block.type);
-	}
-});
+const vcru = await convert(vcruAdapter);
+const dzen = await convert(dzenAdapter);
+const smartlab = await convert(smartlabAdapter);
 
-const warnings = [...markdown.matchAll(/!\[\[([^\]]*)\]\]/g)]
-	.filter((match) => /\.(png|jpe?g|gif|webp|svg|avif|bmp)(\||\]\]|$)/i.test(match[1] ?? ""))
-	.map((match) => {
-		const target = (match[1] ?? "").split("|")[0]?.trim() ?? "";
-		return { code: "image-unresolved", message: "Картинка не найдена: " + target };
-	});
-
-writeFileSync(
-	join(root, "test", "fixtures", "article.expected.json"),
-	JSON.stringify({ blocks: neutral, warnings }, null, 2) + "\n"
-);
-
-writeFileSync(join(root, "test", "fixtures", "article.vcru.txt"), C.toVcruPayload(blocks) + "\n");
-writeFileSync(join(root, "test", "fixtures", "article.dzen.html"), C.toDzenHtml(blocks) + "\n");
-writeFileSync(join(root, "test", "fixtures", "article.smartlab.html"), C.toSmartlabHtml(blocks) + "\n");
+writeFileSync(join(fixtures, "article.expected.json"), JSON.stringify(doc, null, 2) + "\n");
+writeFileSync(join(fixtures, "article.vcru.txt"), vcru.plain + "\n");
+writeFileSync(join(fixtures, "article.dzen.html"), (dzen.html ?? "") + "\n");
+writeFileSync(join(fixtures, "article.smartlab.html"), (smartlab.html ?? "") + "\n");
 
 const singleCases = [
 	"## Глава",
@@ -76,38 +44,21 @@ const singleCases = [
 	"---"
 ];
 
-writeFileSync(
-	join(root, "test", "fixtures", "vcru-single.json"),
-	JSON.stringify(
-		singleCases.map((markdown) => ({
-			markdown,
-			payload: C.toVcruPayload(C.toBlocks(markdown))
-		})),
-		null,
-		2
-	) + "\n"
-);
+const vcruSingle = [];
+const dzenSingle = [];
+const smartlabSingle = [];
 
-writeFileSync(
-	join(root, "test", "fixtures", "dzen-single.json"),
-	JSON.stringify(
-		singleCases.map((markdown) => ({
-			markdown,
-			html: C.toDzenHtml(C.toBlocks(markdown))
-		})),
-		null,
-		2
-	) + "\n"
-);
+for (const markdown of singleCases) {
+	const document = parse(markdown);
+	const vcruPayload = await vcruAdapter.convert(document, { warnings: [...document.warnings] });
+	const dzenPayload = await dzenAdapter.convert(document, { warnings: [...document.warnings] });
+	const smartlabPayload = await smartlabAdapter.convert(document, { warnings: [...document.warnings] });
 
-writeFileSync(
-	join(root, "test", "fixtures", "smartlab-single.json"),
-	JSON.stringify(
-		singleCases.map((markdown) => ({
-			markdown,
-			html: C.toSmartlabHtml(C.toBlocks(markdown))
-		})),
-		null,
-		2
-	) + "\n"
-);
+	vcruSingle.push({ markdown, payload: vcruPayload.plain });
+	dzenSingle.push({ markdown, html: dzenPayload.html ?? "" });
+	smartlabSingle.push({ markdown, html: smartlabPayload.html ?? "" });
+}
+
+writeFileSync(join(fixtures, "vcru-single.json"), JSON.stringify(vcruSingle, null, 2) + "\n");
+writeFileSync(join(fixtures, "dzen-single.json"), JSON.stringify(dzenSingle, null, 2) + "\n");
+writeFileSync(join(fixtures, "smartlab-single.json"), JSON.stringify(smartlabSingle, null, 2) + "\n");

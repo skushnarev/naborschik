@@ -216,7 +216,7 @@ test("обычная markdown-картинка остаётся текстом �
 	});
 });
 
-test("golden: статья из фикстуры совпадает с прототипом", () => {
+test("golden: статья из фикстуры совпадает с эталоном", () => {
 	const markdown = readFileSync(new URL("./fixtures/article.md", import.meta.url), "utf8");
 	const expected: unknown = JSON.parse(
 		readFileSync(new URL("./fixtures/article.expected.json", import.meta.url), "utf8")
