@@ -4,6 +4,8 @@ import type { ClipboardPayload, PlatformAdapter } from "./core/types.ts";
 import { writePayload } from "./plugin/clipboard.ts";
 import { loadImageResolver } from "./plugin/images.ts";
 import { addEditorMenu, copyLabel } from "./plugin/menu.ts";
+import { WarningModal } from "./plugin/warning-modal.ts";
+import { formatCopyNotice, formatSuccessNotice, summarizeWarnings } from "./plugin/warning-summary.ts";
 import { PLATFORMS } from "./platforms/index.ts";
 
 const EMPTY_NOTICE = "Нечего копировать";
@@ -62,10 +64,22 @@ export default class NaborschikPlugin extends Plugin {
 			return;
 		}
 
-		let notice = "Скопировано для " + platform.forWhom + ", символов: " + payload.plain.length;
-		if (context.warnings.length > 0) {
-			notice += ", предупреждений: " + context.warnings.length;
+		const chars = payload.plain.length;
+		const summary = summarizeWarnings(context.warnings);
+		if (!summary) {
+			new Notice(formatSuccessNotice(platform.forWhom, chars));
+			return;
 		}
-		new Notice(notice);
+
+		const fragment = createFragment((element) => {
+			element.appendText(formatCopyNotice(platform.forWhom, chars, summary) + " ");
+			const link = element.createEl("a", { text: "Подробнее", href: "#" });
+			link.addEventListener("click", (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				new WarningModal(this.app, platform.forWhom, summary).open();
+			});
+		});
+		new Notice(fragment, 10000);
 	}
 }
