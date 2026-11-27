@@ -1,0 +1,62 @@
+name: Релиз
+
+on:
+  push:
+    tags:
+      - "[0-9]*.[0-9]*.[0-9]*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Забрать код и историю
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Поставить Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "26"
+          cache: npm
+
+      - name: Поставить зависимости
+        run: npm ci
+
+      - name: Забрать main
+        run: git fetch --no-tags origin main
+
+      - name: Проверить, что тег на main
+        run: git merge-base --is-ancestor HEAD FETCH_HEAD
+
+      - name: Проверить
+        run: make check
+
+      - name: Сверить версию с тегом
+        run: make version-check ARGS="$GITHUB_REF_NAME"
+
+      - name: Опубликовать релиз
+        run: |
+          set -euo pipefail
+          assets=(dist/main.js dist/manifest.json)
+          if [ -f dist/styles.css ]; then
+            assets+=(dist/styles.css)
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --draft \
+            --title "Naborschik $GITHUB_REF_NAME" \
+            --notes "Сборка плагина Naborschik. В релизе main.js, manifest.json и styles.css, если он есть в сборке."
+          gh release upload "$GITHUB_REF_NAME" "${assets[@]}"
+          gh release edit "$GITHUB_REF_NAME" --draft=false
