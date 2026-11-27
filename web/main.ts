@@ -1,12 +1,22 @@
 import { hasFrontmatter } from "../src/core/parse.ts";
 import { PLATFORMS } from "../src/platforms/index.ts";
-import type { Block, PlatformAdapter, Warning } from "../src/core/types.ts";
+import type { Block, ImageResolver, PlatformAdapter, Warning } from "../src/core/types.ts";
 import { convertMarkdown, type Conversion, type PlatformOutput } from "./convert.ts";
+import {
+	createImageEntry,
+	createImageResolver,
+	mergeImageEntries,
+	normalizeImagePath,
+	summarizeImages,
+	type ImageEntry
+} from "./images.ts";
+import { sampleImageEntry } from "./sample.ts";
 
 type Tab = "blocks" | "payload";
 
 type State = {
 	conversion: Conversion | null;
+	images: ImageEntry[];
 	platform: string;
 	tab: Tab;
 	error: string;
@@ -51,7 +61,9 @@ const SAMPLE = [
 	"console.log(x);",
 	"~~~",
 	"",
-	"Ссылка на [[Папку/Заметку|алиас]] и картинка ![[star.png|64]]."
+	"Ссылка на [[Папку/Заметку|алиас]].",
+	"",
+	"![[star.png|64]]"
 ].join("\n");
 
 function byId<T extends HTMLElement>(id: string): T {
@@ -72,9 +84,18 @@ const copyButton = byId<HTMLButtonElement>("copy");
 const fileInput = byId<HTMLInputElement>("file");
 const hintEl = byId<HTMLElement>("hint");
 const toastEl = byId<HTMLElement>("toast");
+const pageEl = document.querySelector<HTMLElement>(".page");
+const imageFilesInput = byId<HTMLInputElement>("image-files");
+const imageFolderInput = byId<HTMLInputElement>("image-folder");
+const imageChipsEl = byId<HTMLElement>("image-chips");
+const imageSummaryEl = byId<HTMLElement>("image-summary");
+const imageNotesEl = byId<HTMLElement>("image-notes");
+
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 
 const state: State = {
 	conversion: null,
+	images: [sampleImageEntry()],
 	platform: PLATFORMS[0]?.id ?? "",
 	tab: "blocks",
 	error: ""
@@ -82,6 +103,7 @@ const state: State = {
 
 let generation = 0;
 let toastTimer = 0;
+const resolvers = new WeakMap<ImageEntry[], ImageResolver>();
 
 for (const adapter of PLATFORMS) {
 	const button = document.createElement("button");
@@ -106,7 +128,7 @@ async function convert(): Promise<void> {
 	const current = ++generation;
 
 	try {
-		const conversion = await convertMarkdown(input.value);
+		const conversion = await convertMarkdown(input.value, resolverFor(state.images));
 		if (current !== generation) return;
 		state.conversion = conversion;
 		state.error = "";
@@ -149,6 +171,7 @@ function render(): void {
 	renderNotice(blocks, text, adapter, warnings);
 	renderPlatforms();
 	renderBlocks(blocks);
+	renderImages();
 	setTab(state.tab);
 	hintEl.textContent = hintFor(adapter);
 }
@@ -206,6 +229,134 @@ function renderNotice(
 	const unique = [...new Set(messages)];
 	noticeEl.hidden = unique.length === 0;
 	noticeEl.textContent = unique.join(" ");
+}
+
+function renderImages(): void {
+	const summary = summarizeImages(state.images, input.value);
+	const total = formatBytes(summary.totalSize);
+
+	if (summary.targets.length > 0) {
+		imageSummaryEl.textContent = "сопоставлено " + summary.matched + " из " + summary.targets.length + " · " + total;
+	} else if (state.images.length > 0) {
+		imageSummaryEl.textContent = state.images.length + " " + fileWord(state.images.length) + " · " + total;
+	} else {
+		imageSummaryEl.textContent = "файлы не выбраны, перетащи их на страницу";
+	}
+
+	imageChipsEl.innerHTML = "";
+	for (const entry of state.images) {
+		const chip = document.createElement("span");
+		chip.className = "chip" + (entry.sample ? " chip-sample" : "");
+		chip.title = entry.path + (entry.sample ? " (из примера)" : "");
+
+		const name = document.createElement("span");
+		name.className = "chip-name";
+		name.textContent = entry.name;
+
+		const size = document.createElement("span");
+		size.className = "chip-size";
+		size.textContent = formatBytes(entry.size);
+
+		const remove = document.createElement("button");
+		remove.type = "button";
+		remove.className = "chip-remove";
+		remove.textContent = "×";
+		remove.setAttribute("aria-label", "Убрать " + entry.name);
+		remove.addEventListener("click", () => {
+			state.images = state.images.filter((item) => item !== entry);
+			void convert();
+		});
+
+		chip.append(name, size, remove);
+		imageChipsEl.appendChild(chip);
+	}
+
+	const notes: Array<{ text: string; warn?: boolean }> = [];
+
+	if (summary.unmatched.length > 0) {
+		notes.push({ text: "Не найдены: " + summary.unmatched.join(", ") });
+	}
+	if (summary.ambiguous.length > 0) {
+		notes.push({
+			text:
+				"Файлы с именем " +
+				summary.ambiguous.join(", ") +
+				": по имени не подставляются, укажи папку в ![[...]] или удали лишний.",
+			warn: true
+		});
+	}
+	if (summary.totalSize > MAX_IMAGE_BYTES) {
+		notes.push({
+			text: "Картинки весят больше 20 МБ: страница может тормозить, сжатие появится позже.",
+			warn: true
+		});
+	}
+
+	imageNotesEl.innerHTML = "";
+	for (const note of notes) {
+		const line = document.createElement("p");
+		line.className = "image-note" + (note.warn ? " warn" : "");
+		line.textContent = note.text;
+		imageNotesEl.appendChild(line);
+	}
+	imageNotesEl.hidden = notes.length === 0;
+}
+
+function formatBytes(size: number): string {
+	if (size < 1024) return size + " Б";
+	if (size < 1024 * 1024) return (size / 1024).toFixed(1).replace(".", ",") + " КБ";
+	return (size / (1024 * 1024)).toFixed(1).replace(".", ",") + " МБ";
+}
+
+function fileWord(count: number): string {
+	const mod10 = count % 10;
+	const mod100 = count % 100;
+	if (mod10 === 1 && mod100 !== 11) return "файл";
+	if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "файла";
+	return "файлов";
+}
+
+async function addImageFiles(files: File[]): Promise<void> {
+	if (files.length === 0) return;
+
+	const created: ImageEntry[] = [];
+	const rejected: string[] = [];
+
+	for (const file of files) {
+		const path = file.webkitRelativePath || file.name;
+
+		try {
+			const entry = createImageEntry(path, new Uint8Array(await file.arrayBuffer()));
+			if (entry) created.push(entry);
+			else rejected.push(file.name);
+		} catch {
+			rejected.push(file.name);
+		}
+	}
+
+	if (created.length > 0) {
+		state.images = mergeImageEntries(state.images, created);
+		void convert();
+	}
+
+	const messages: string[] = [];
+	if (created.length > 0) messages.push("Добавлено картинок: " + created.length);
+	if (rejected.length > 0) messages.push("Пропущены: " + rejected.join(", "));
+	toast(messages.join(". ") || "Картинки не выбраны");
+}
+
+function resolverFor(entries: ImageEntry[]): ImageResolver {
+	let resolver = resolvers.get(entries);
+	if (!resolver) {
+		resolver = createImageResolver(entries);
+		resolvers.set(entries, resolver);
+	}
+	return resolver;
+}
+
+function withSampleImage(entries: ImageEntry[]): ImageEntry[] {
+	if (entries.some((entry) => normalizeImagePath(entry.name) === "star.png")) return entries;
+	return [...entries, sampleImageEntry()];
 }
 
 function renderPlatforms(): void {
@@ -327,10 +478,12 @@ function fillPreview(container: HTMLElement, block: Block): void {
 			return;
 		}
 		case "image": {
-			const placeholder = document.createElement("div");
-			placeholder.className = "image-placeholder";
-			placeholder.textContent = "Картинка" + (block.alt ? ": " + block.alt : "");
-			container.appendChild(placeholder);
+			const image = document.createElement("img");
+			image.className = "image-preview";
+			image.src = block.src;
+			image.alt = block.alt;
+			if (block.width) image.width = block.width;
+			container.appendChild(image);
 			return;
 		}
 		case "delimiter":
@@ -489,6 +642,11 @@ function toast(message: string): void {
 }
 
 input.addEventListener("input", () => {
+	// Своя статья вытесняет режим примера: встроенная картинка не должна
+	// подставляться в чужой ![[star.png]].
+	if (input.value !== SAMPLE && state.images.some((entry) => entry.sample)) {
+		state.images = state.images.filter((entry) => !entry.sample);
+	}
 	void convert();
 });
 
@@ -505,13 +663,44 @@ document.addEventListener("keydown", (event) => {
 
 byId<HTMLButtonElement>("load-sample").addEventListener("click", () => {
 	input.value = SAMPLE;
+	state.images = withSampleImage(state.images);
 	void convert();
 });
 
 byId<HTMLButtonElement>("clear").addEventListener("click", () => {
 	input.value = "";
+	state.images = [];
 	void convert();
 	input.focus();
+});
+
+imageFilesInput.addEventListener("change", () => {
+	const files = Array.from(imageFilesInput.files ?? []);
+	imageFilesInput.value = "";
+	void addImageFiles(files);
+});
+
+imageFolderInput.addEventListener("change", () => {
+	const files = Array.from(imageFolderInput.files ?? []);
+	imageFolderInput.value = "";
+	void addImageFiles(files);
+});
+
+document.addEventListener("dragover", (event) => {
+	if (!event.dataTransfer?.types.includes("Files")) return;
+	event.preventDefault();
+	pageEl?.classList.add("dragging");
+});
+
+document.addEventListener("dragleave", (event) => {
+	if (event.relatedTarget === null) pageEl?.classList.remove("dragging");
+});
+
+document.addEventListener("drop", (event) => {
+	if (!event.dataTransfer?.types.includes("Files")) return;
+	event.preventDefault();
+	pageEl?.classList.remove("dragging");
+	void addImageFiles(Array.from(event.dataTransfer.files));
 });
 
 fileInput.addEventListener("change", () => {
@@ -522,6 +711,7 @@ fileInput.addEventListener("change", () => {
 		.text()
 		.then((text) => {
 			input.value = text;
+			state.images = state.images.filter((entry) => !entry.sample);
 			fileInput.value = "";
 			void convert();
 			toast("Загружено: " + file.name);

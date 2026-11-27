@@ -34,6 +34,18 @@
 				<span class="pill">Cmd/Ctrl + Enter копирует</span>
 			</div>
 			<textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Выдели статью в Obsidian и вставь сюда..."></textarea>
+			<div class="images">
+				<div class="images-head">
+					<span class="images-title">Картинки</span>
+					<span id="image-summary" class="images-summary">файлы не выбраны, перетащи их на страницу</span>
+					<div class="images-actions">
+						<label class="file-button compact">Добавить картинки<input id="image-files" type="file" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.avif,.bmp,.svg"></label>
+						<label class="file-button compact">Папка<input id="image-folder" type="file" webkitdirectory multiple></label>
+					</div>
+				</div>
+				<div id="image-chips" class="chips"></div>
+				<div id="image-notes" class="image-notes" hidden></div>
+			</div>
 			<div id="stats" class="stats"></div>
 			<div id="notice" class="notice" hidden></div>
 		</section>

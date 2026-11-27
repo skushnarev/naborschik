@@ -5,6 +5,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { convertMarkdown } from "../web/convert.ts";
+import { createImageEntry, createImageResolver } from "../web/images.ts";
+import { STAR } from "./support/star.ts";
+
+function golden(name: string): string {
+	return readFileSync(new URL("./fixtures/" + name, import.meta.url), "utf8").replace(/\n$/, "");
+}
 
 test("веб-конвертер отдаёт выход трёх площадок", async () => {
 	const result = await convertMarkdown("## Глава\n\nТекст\n\n~~~js\nconst x = 1;\n~~~");
@@ -25,9 +31,6 @@ test("веб-конвертер совпадает с golden плагина", as
 	const markdown = readFileSync(new URL("./fixtures/article.md", import.meta.url), "utf8");
 	const result = await convertMarkdown(markdown);
 
-	const golden = (name: string): string =>
-		readFileSync(new URL("./fixtures/" + name, import.meta.url), "utf8").replace(/\n$/, "");
-
 	assert.equal(result.outputs.vcru?.payload.plain, golden("article.vcru.txt"));
 	assert.equal(result.outputs.dzen?.payload.html, golden("article.dzen.html"));
 	assert.equal(result.outputs.smartlab?.payload.html, golden("article.smartlab.html"));
@@ -40,6 +43,41 @@ test("предупреждения разбора и адаптера попад
 	assert.ok(dzen);
 	assert.ok(dzen.warnings.some((warning) => warning.code === "image-unresolved"));
 	assert.ok(dzen.warnings.some((warning) => warning.code === "table-degraded"));
+});
+
+test("веб-конвертер подставляет выбранные картинки в Дзен и Смартлаб", async () => {
+	const entry = createImageEntry("star.png", STAR);
+	assert.ok(entry);
+
+	const result = await convertMarkdown("![[star.png|64]]", createImageResolver([entry]));
+	const dzen = result.outputs.dzen?.payload.html ?? "";
+	const smartlab = result.outputs.smartlab?.payload.html ?? "";
+
+	assert.equal(result.blocks[0]?.type, "image");
+	assert.match(dzen, /^<img src="data:image\/png;base64,/);
+	assert.match(dzen, /width="64"/);
+	assert.match(smartlab, /^<img src="data:image\/png;base64,/);
+	assert.equal(result.outputs.vcru?.payload.plain, "![[star.png|64]]");
+});
+
+test("без выбранного файла вставка остаётся текстом с предупреждением", async () => {
+	const result = await convertMarkdown("![[missing.png]]", createImageResolver([]));
+
+	assert.deepEqual(result.blocks, [
+		{ type: "text", html: "<p>![[missing.png]]</p>", text: "![[missing.png]]" }
+	]);
+	assert.deepEqual(result.warnings, [
+		{ code: "image-unresolved", message: "Картинка не найдена: missing.png" }
+	]);
+});
+
+test("пустой резолвер не ломает golden статьи", async () => {
+	const markdown = readFileSync(new URL("./fixtures/article.md", import.meta.url), "utf8");
+	const result = await convertMarkdown(markdown, createImageResolver([]));
+
+	assert.equal(result.outputs.vcru?.payload.plain, golden("article.vcru.txt"));
+	assert.equal(result.outputs.dzen?.payload.html, golden("article.dzen.html"));
+	assert.equal(result.outputs.smartlab?.payload.html, golden("article.smartlab.html"));
 });
 
 test("make public собирает самодостаточный index.html", () => {
