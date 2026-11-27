@@ -4,8 +4,6 @@
   "include-v-in-tag": false,
   "include-component-in-tag": false,
   "include-v-in-release-name": false,
-  "versioning": "always-bump-patch",
-  "bootstrap-sha": "a5f1dd61b896d9fe6585145b2ad660fe2d17bb90",
   "changelog-sections": [
     { "type": "feat", "section": "Новое" },
     { "type": "fix", "section": "Исправления" },
