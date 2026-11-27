@@ -14,15 +14,17 @@
 
 Сделать GitHub единственным местом, откуда плагин ставят другие люди. На каждый релиз GitHub Actions собирает `dist/`, проверяет, что версия в манифесте совпадает с тегом, и прикрепляет к релизу `main.js` и `manifest.json`. Установка описывается двумя путями: скачать файлы из релиза вручную или поставить через BRAT. Подача в каталог Community Plugins идёт отдельным шагом, когда релиз стабилен.
 
-Текущий репозиторий `skushnarev/naborschik` публичный, отдельный релизный не заводим. Релиз запускается по push тега без префикса `v`: workflow сам создаёт GitHub Release и прикладывает `main.js` и `manifest.json`. Это совместимо с release-please, если в REL-02 выключить префикс `v`. `LICENSE` отложен до REL-03: до этого репозиторий публичный, но не open source.
+Текущий репозиторий `skushnarev/naborschik` публичный, отдельный релизный не заводим. В `REL-01` релиз запускается по push тега без префикса `v`: workflow сам создаёт GitHub Release и прикладывает `main.js` и `manifest.json`. `REL-02` заменяет этот запуск на release-please: тег и релиз создаёт он, а workflow только собирает и прикладывает артефакты. `LICENSE` отложен до REL-03: до этого репозиторий публичный, но не open source.
 
-Версию и changelog ведёт инструмент на основе Conventional Commits. Предпочтение: release-please, потому что он делает release PR, обновляет версию и `CHANGELOG.md` и ставит тег. Альтернатива: commit-and-tag-version, если нужен полностью локальный процесс. Выбор фиксируется в `REL-02`, вместе с судьбой правила «патч растёт после каждой задачи».
+Версию и changelog ведёт release-please: он делает release PR, обновляет версию и `CHANGELOG.md` и ставит тег. commit-and-tag-version не выбран: release-please даёт release PR и changelog на GitHub. `REL-02` переводит на него весь релизный путь и убирает `make bump`.
+
+release-please сам создаёт GitHub Release и тег, поэтому отдельный workflow на `release: published` не сработает: события, созданные `GITHUB_TOKEN`, не запускают другие workflow. Сборка и загрузка `main.js` и `manifest.json` идут в том же job, что и release-please, по условию `release_created`. Тег без префикса `v`.
 
 ## Что входит
 
 - Workflow проверок на push и pull request.
-- Workflow релиза по тегу или release PR: сборка, проверка версии, артефакты.
-- Единый источник версии и проверка согласованности `package.json`, `package-lock.json` и `manifest.json`.
+- Workflow релиза через release-please: release PR, тег, GitHub Release, сборка и артефакты.
+- Версия обновляется release-please в `package.json`, `package-lock.json` и `manifest.json`; `make version-check` проверяет согласованность и тег.
 - `CHANGELOG.md` из Conventional Commits.
 - Инструкция установки из релиза и через BRAT.
 - Чеклист подачи в Community Plugins.
@@ -35,19 +37,13 @@
 - Изменение кода плагина, разбора и адаптеров.
 - Секреты и токены в репозитории.
 
-## Открытые вопросы
-
-- Оставлять ли `make bump` для локальных сборок или версия меняется только в release PR?
-- Писать changelog по-русски или оставить заголовки инструмента на английском?
-- Нужен ли `styles.css`, если у плагина появится оформление?
-
 ## Задачи
 
 - `REL-01` - релизный workflow GitHub Actions и артефакты.
-- `REL-02` - semver и changelog из Conventional Commits.
+- `REL-02` - release-please, версия и changelog.
 - `REL-03` - установка из релиза, BRAT и чеклист Community Plugins.
 
-`REL-01` ждёт человека: нужен удалённый репозиторий на GitHub и решение о публичности. `REL-02` можно делать локально параллельно. `REL-03` идёт после обоих, потому что описывает уже работающий релиз.
+`REL-01` даёт CI и релиз по тегу. `REL-02` заменяет ручной бамп и тег на release-please. `REL-03` идёт после обоих, потому что описывает уже работающий релиз.
 
 ## Критерий готовности
 
