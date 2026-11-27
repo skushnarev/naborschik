@@ -26,7 +26,7 @@ dev: ## Сборка плагина с watch
 
 check: docs-check core-check typecheck test build ## Все проверки проекта
 
-golden: ## Пересобрать golden-фикстуры из src
+golden: ## Пересобрать golden-фикстуры из `src/`
 	node bin/make-golden.mjs
 
 public: ## Собрать веб-конвертер в public/index.html (ARGS="папка")

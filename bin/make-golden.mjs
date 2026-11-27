@@ -1,35 +1,19 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "../src/core/parse.ts";
-import { dzenAdapter } from "../src/platforms/dzen.ts";
-import { smartlabAdapter } from "../src/platforms/smartlab.ts";
-import { vcruAdapter } from "../src/platforms/vcru.ts";
+import { PLATFORMS } from "../src/platforms/index.ts";
 
 /**
  * Пересобирает golden-фикстуры из `src/`. Запускать после правки
  * `article.md` или осознанного изменения выходов: `make golden`.
  *
- * Источник истины это продакшен-разбор и адаптеры. Генератор обновляет
- * эталоны, а не проверяет их, поэтому diff перед коммитом обязателен.
+ * Источник истины это продакшен-разбор и реестр площадок. Новая площадка
+ * в `PLATFORMS` получает фикстуры без правки генератора. Генератор
+ * обновляет эталоны, а не проверяет их, поэтому diff перед коммитом
+ * обязателен.
  */
 const root = process.cwd();
 const fixtures = join(root, "test", "fixtures");
-
-const markdown = readFileSync(join(fixtures, "article.md"), "utf8");
-const doc = parse(markdown);
-
-async function convert(adapter) {
-	return adapter.convert(doc, { warnings: [...doc.warnings] });
-}
-
-const vcru = await convert(vcruAdapter);
-const dzen = await convert(dzenAdapter);
-const smartlab = await convert(smartlabAdapter);
-
-writeFileSync(join(fixtures, "article.expected.json"), JSON.stringify(doc, null, 2) + "\n");
-writeFileSync(join(fixtures, "article.vcru.txt"), vcru.plain + "\n");
-writeFileSync(join(fixtures, "article.dzen.html"), (dzen.html ?? "") + "\n");
-writeFileSync(join(fixtures, "article.smartlab.html"), (smartlab.html ?? "") + "\n");
 
 const singleCases = [
 	"## Глава",
@@ -44,21 +28,31 @@ const singleCases = [
 	"---"
 ];
 
-const vcruSingle = [];
-const dzenSingle = [];
-const smartlabSingle = [];
+const article = parse(readFileSync(join(fixtures, "article.md"), "utf8"));
+const singles = singleCases.map((markdown) => ({ markdown, doc: parse(markdown) }));
+const outputs = [{ file: "article.expected.json", body: JSON.stringify(article, null, 2) + "\n" }];
 
-for (const markdown of singleCases) {
-	const document = parse(markdown);
-	const vcruPayload = await vcruAdapter.convert(document, { warnings: [...document.warnings] });
-	const dzenPayload = await dzenAdapter.convert(document, { warnings: [...document.warnings] });
-	const smartlabPayload = await smartlabAdapter.convert(document, { warnings: [...document.warnings] });
+for (const adapter of PLATFORMS) {
+	const articlePayload = await convert(adapter, article);
+	const extension = articlePayload.html != null ? "html" : "txt";
+	outputs.push({
+		file: `article.${adapter.id}.${extension}`,
+		body: (articlePayload.html ?? articlePayload.plain) + "\n"
+	});
 
-	vcruSingle.push({ markdown, payload: vcruPayload.plain });
-	dzenSingle.push({ markdown, html: dzenPayload.html ?? "" });
-	smartlabSingle.push({ markdown, html: smartlabPayload.html ?? "" });
+	const cases = [];
+	for (const { markdown, doc } of singles) {
+		const payload = await convert(adapter, doc);
+		cases.push(payload.html != null ? { markdown, html: payload.html } : { markdown, payload: payload.plain });
+	}
+
+	outputs.push({ file: `${adapter.id}-single.json`, body: JSON.stringify(cases, null, 2) + "\n" });
 }
 
-writeFileSync(join(fixtures, "vcru-single.json"), JSON.stringify(vcruSingle, null, 2) + "\n");
-writeFileSync(join(fixtures, "dzen-single.json"), JSON.stringify(dzenSingle, null, 2) + "\n");
-writeFileSync(join(fixtures, "smartlab-single.json"), JSON.stringify(smartlabSingle, null, 2) + "\n");
+// Пишем после расчёта всех выходов, чтобы сбой не оставил половину набора.
+for (const { file, body } of outputs) writeFileSync(join(fixtures, file), body);
+
+/** Контекст как в веб-версии: свежая копия предупреждений разбора на каждый вызов. */
+async function convert(adapter, doc) {
+	return adapter.convert(doc, { warnings: [...doc.warnings] });
+}
