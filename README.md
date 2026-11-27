@@ -13,6 +13,23 @@ make plugin-link VAULT=/путь/к/хранилищу
 
 Команды `Копировать для vc.ru`, `Копировать для Дзена` и `Копировать для Смартлаба` есть в палитре, а в меню редактора они собраны в подменю. Если Obsidian не умеет подменю, вместо него появляются плоские пункты. Выделение важнее заметки целиком: пустое выделение берёт весь файл. Frontmatter и H1 отбрасываются, заголовок статьи вставляется в поле заголовка вручную.
 
+## Релиз
+
+Версия плагина живёт в `package.json`, `package-lock.json` и `manifest.json`. `make bump` поднимает патч во всех трёх файлах, `make version-check` сверяет их между собой, а с `ARGS="0.1.5"` ещё и с тегом. Проверка входит в `make check`.
+
+Релиз запускается по push тега без префикса `v`:
+
+```bash
+git tag -a 0.1.5 -m "0.1.5"
+git push origin 0.1.5
+```
+
+Workflow `.github/workflows/release.yml` собирает `dist/`, прогоняет `make check`, проверяет, что тег указывает на коммит из `main`, и создаёт GitHub Release с `main.js` и `manifest.json`. Если в сборке появится `styles.css`, он прикладывается тем же шагом. `dist/` по-прежнему не коммитится. Тег с версией, отличной от манифеста, роняет workflow.
+
+Проверочный workflow `.github/workflows/ci.yml` гоняет `npm ci` и `make check` на push в `main` и на pull request. Если Actions в репозитории выключены, включите их в Settings → Actions → General. Права по умолчанию можно оставить read-only: релизный job сам просит `contents: write`. Право записи для всего репозитория и личные токены не нужны, используется только `GITHUB_TOKEN`.
+
+Установка из релиза и через BRAT это REL-03.
+
 ## Три выхода
 
 | Площадка | Формат буфера | Что получается |
@@ -123,6 +140,7 @@ make status ARGS="--check"
 npm install
 make docs-check
 make core-check
+make version-check
 make test
 make check
 make hooks

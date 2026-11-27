@@ -1,12 +1,12 @@
 ---
 id: REL-01
 title: "Релизный workflow GitHub Actions и артефакты"
-status: blocked
+status: doing
 area: release
 kind: chore
 severity: P1
 milestone: next
-blocked_by: ["human"]
+blocked_by: []
 spec: .scratch/release/spec.md
 updated: 2026-11-27
 ---
@@ -38,3 +38,16 @@ updated: 2026-11-27
 - Генерация changelog и semver: это `REL-02`.
 - Инструкция установки и подача в Community Plugins: это `REL-03`.
 - Подпись сборки и нотаризация.
+
+## Решения
+
+- Текущий репозиторий `skushnarev/naborschik` публичный, отдельный релизный не заводим.
+- Релиз запускается по push тега без префикса `v`. Workflow сам создаёт GitHub Release.
+- Первый релиз это текущая версия `0.1.5`, обычный, не prerelease.
+- `bin/check-version.mjs` сверяет `package.json`, `package-lock.json` и `manifest.json`, с аргументом ещё и тег. Проверка входит в `make check`.
+- Плохой тег проверяется настоящим тегом `0.1.99`, после проверки тег удаляется. Плюс тест на скрипт версии.
+- Тело релиза на русском, название `Naborschik 0.1.5`, публикуется сразу.
+- Релизный workflow гоняет `make check` и проверяет, что тег указывает на коммит из `main`.
+- CI на Node 26 и `ubuntu-latest`, официальные actions по major-тегу, релиз через `gh`.
+- `LICENSE` отложен до `REL-03`.
+- `REL-01` проверяется в ветке и PR, затем merge в `main`.

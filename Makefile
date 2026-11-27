@@ -1,4 +1,4 @@
-.PHONY: status docs-check core-check typecheck test check build dev golden public bump hooks agents plugin-link help
+.PHONY: status docs-check core-check version-check typecheck test check build dev golden public bump hooks agents plugin-link help
 
 help: ## Показать цели
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -12,6 +12,9 @@ docs-check: ## Проверить задачи и запретить чекли�
 core-check: ## Проверить, что ядро, адаптеры и веб-конвертер не импортируют obsidian
 	node bin/core-check.mjs
 
+version-check: ## Сверить версию в package.json, package-lock.json и manifest.json (ARGS="0.1.5")
+	node bin/check-version.mjs $(ARGS)
+
 typecheck: ## Проверить типы TypeScript
 	./node_modules/.bin/tsc --noEmit
 
@@ -24,7 +27,7 @@ build: ## Собрать плагин в dist
 dev: ## Сборка плагина с watch
 	node esbuild.config.mjs
 
-check: docs-check core-check typecheck test build ## Все проверки проекта
+check: docs-check core-check version-check typecheck test build ## Все проверки проекта
 
 golden: ## Пересобрать golden-фикстуры из `src/`
 	node bin/make-golden.mjs
