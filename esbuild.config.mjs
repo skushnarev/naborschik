@@ -1,10 +1,14 @@
 import esbuild from "esbuild";
+import { existsSync } from "node:fs";
 import { copyFile, mkdir } from "node:fs/promises";
 
 const production = process.argv.includes("production");
 
 await mkdir("dist", { recursive: true });
 await copyFile("manifest.json", "dist/manifest.json");
+if (existsSync("styles.css")) {
+	await copyFile("styles.css", "dist/styles.css");
+}
 
 const context = await esbuild.context({
 	entryPoints: ["src/main.ts"],
