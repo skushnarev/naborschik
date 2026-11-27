@@ -1,7 +1,7 @@
 {
 	"id": "naborschik",
 	"name": "Naborschik",
-	"version": "0.1.5",
+	"version": "0.1.6",
 	"minAppVersion": "1.5.0",
 	"description": "Копирует выделенный Markdown в буфер площадки: vc.ru, Дзен, Смартлаб.",
 	"author": "LEXX",
