@@ -2,26 +2,40 @@ name: Релиз
 
 on:
   push:
-    tags:
-      - "*"
-
-permissions:
-  contents: read
+    branches: [main]
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  release:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - name: Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  artifacts:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Забрать код и историю
+      - name: Забрать код
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Поставить Node
         uses: actions/setup-node@v7
@@ -32,31 +46,22 @@ jobs:
       - name: Поставить зависимости
         run: npm ci
 
-      - name: Забрать main
-        run: git fetch --no-tags origin main
-
-      - name: Проверить, что тег на main
-        run: git merge-base --is-ancestor HEAD FETCH_HEAD
-
-      - name: Проверить
+      - name: Проверить и собрать
         run: make check
 
       - name: Сверить версию с тегом
-        run: make version-check ARGS="$GITHUB_REF_NAME"
+        env:
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+        run: make version-check ARGS="$TAG_NAME"
 
-      - name: Опубликовать релиз
+      - name: Приложить артефакты
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
         run: |
           set -euo pipefail
           assets=(dist/main.js dist/manifest.json)
           if [ -f dist/styles.css ]; then
             assets+=(dist/styles.css)
           fi
-          gh release create "$GITHUB_REF_NAME" \
-            --verify-tag \
-            --draft \
-            --title "Naborschik $GITHUB_REF_NAME" \
-            --notes "Сборка плагина Naborschik. В релизе main.js, manifest.json и styles.css, если он есть в сборке."
-          gh release upload "$GITHUB_REF_NAME" "${assets[@]}"
-          gh release edit "$GITHUB_REF_NAME" --draft=false
+          gh release upload "$TAG_NAME" "${assets[@]}" --clobber

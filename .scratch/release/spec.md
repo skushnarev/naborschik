@@ -1,14 +1,14 @@
 # Спека: релизы, версии и установка из интернета
 
 > **Дата:** 2026-11-27
-> **Основа:** `AGENTS.md`, `PLAN.md`, `manifest.json`, `bin/bump-version.mjs`, `esbuild.config.mjs`.
+> **Основа:** `AGENTS.md`, `PLAN.md`, `manifest.json`, `esbuild.config.mjs`.
 > **Связанное:** `.scratch/plugin-mvp/`, `README.md`.
 
 ## Проблема
 
 Плагин собирается только локально. `dist/` в `.gitignore`, GitHub Actions нет, удалённого репозитория тоже нет. Поставить плагин может только автор: `make plugin-link` ставит симлинк на локальную сборку. Другой человек не может скачать готовый `main.js` и `manifest.json` из интернета.
 
-Версия живёт в трёх файлах: `package.json`, `package-lock.json` и `manifest.json`. `make bump` поднимает патч вручную после каждой задачи. Для релиза этого мало: Obsidian читает версию из `manifest.json`, тег релиза должен с ней совпадать, а история изменений нигде не собирается. Коммиты уже идут по Conventional Commits, значит changelog можно строить автоматически.
+Версия живёт в трёх файлах: `package.json`, `package-lock.json` и `manifest.json`. Раньше `make bump` поднимал патч вручную после каждой задачи. Для релиза этого мало: Obsidian читает версию из `manifest.json`, тег релиза должен с ней совпадать, а история изменений нигде не собирается. Коммиты уже идут по Conventional Commits, значит changelog можно строить автоматически.
 
 ## Решение
 
@@ -18,7 +18,7 @@
 
 Версию и changelog ведёт release-please: он делает release PR, обновляет версию и `CHANGELOG.md` и ставит тег. commit-and-tag-version не выбран: release-please даёт release PR и changelog на GitHub. `REL-02` переводит на него весь релизный путь и убирает `make bump`.
 
-release-please сам создаёт GitHub Release и тег, поэтому отдельный workflow на `release: published` не сработает: события, созданные `GITHUB_TOKEN`, не запускают другие workflow. Сборка и загрузка `main.js` и `manifest.json` идут в том же job, что и release-please, по условию `release_created`. Тег без префикса `v`.
+release-please сам создаёт GitHub Release и тег, поэтому отдельный workflow на `release: published` не сработает: события, созданные `GITHUB_TOKEN`, не запускают другие workflow. Сборка и загрузка `main.js` и `manifest.json` идут в том же workflow, по условию `release_created`. Тег без префикса `v`.
 
 ## Что входит
 

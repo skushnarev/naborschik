@@ -15,18 +15,13 @@ make plugin-link VAULT=/путь/к/хранилищу
 
 ## Релиз
 
-Версия плагина живёт в `package.json`, `package-lock.json` и `manifest.json`. `make bump` поднимает патч во всех трёх файлах, `make version-check` сверяет их между собой, а с `ARGS="0.1.5"` ещё и с тегом. Проверка входит в `make check`.
+Версию, `CHANGELOG.md`, тег и GitHub Release ведёт release-please. Он собирает изменения из Conventional Commits, открывает release PR с новой версией в `package.json`, `package-lock.json` и `manifest.json`, а после merge ставит тег без префикса `v` и создаёт релиз. `make version-check` сверяет версию в трёх файлах, а с `ARGS="0.1.5"` ещё и с тегом. Проверка входит в `make check`.
 
-Релиз запускается по push тега без префикса `v`:
+Ручной бамп больше не нужен: версия меняется только в release PR. Настройка лежит в `release-please-config.json` и `.release-please-manifest.json`. После релиза workflow `.github/workflows/release.yml` собирает `dist/`, прогоняет `make check` и прикладывает к релизу `main.js` и `manifest.json`, а `styles.css`, если он есть в сборке. `dist/` не коммитится.
 
-```bash
-git tag -a 0.1.5 -m "0.1.5"
-git push origin 0.1.5
-```
+Чтобы release PR запускал проверки, добавьте личный токен GitHub с точечными правами `contents: write`, `pull-requests: write` и `issues: write` в секрет `RELEASE_PLEASE_TOKEN`. Без него workflow работает на `GITHUB_TOKEN`, но PR, созданный этим токеном, не запускает другие workflow.
 
-Workflow `.github/workflows/release.yml` собирает `dist/`, прогоняет `make check`, проверяет, что тег указывает на коммит из `main`, и создаёт GitHub Release с `main.js` и `manifest.json`. Если в сборке появится `styles.css`, он прикладывается тем же шагом. `dist/` по-прежнему не коммитится. Тег с версией, отличной от манифеста, роняет workflow.
-
-Проверочный workflow `.github/workflows/ci.yml` гоняет `npm ci` и `make check` на push в `main` и на pull request. Если Actions в репозитории выключены, включите их в Settings → Actions → General. Права по умолчанию можно оставить read-only: релизный job сам просит `contents: write`. Право записи для всего репозитория и личные токены не нужны, используется только `GITHUB_TOKEN`. Репозиторий должен быть публичным, иначе релиз не скачать без авторизации. Тег может запушить любой, у кого есть право записи: отдельной защиты тегов нет.
+Проверочный workflow `.github/workflows/ci.yml` гоняет `npm ci` и `make check` на push в `main` и на pull request. Если Actions в репозитории выключены, включите их в Settings → Actions → General. Права по умолчанию можно оставить read-only: релизные job сами просят нужные права. Репозиторий должен быть публичным, иначе релиз не скачать без авторизации. Тег создаёт release-please, вручную его пушить не нужно.
 
 Установка из релиза и через BRAT это REL-03.
 
@@ -112,6 +107,9 @@ test/
   fixtures/               входные статьи и golden-выходы
 dist/                     main.js, manifest.json и styles.css, если он есть; в .gitignore
 manifest.json             источник, копируется в dist
+release-please-config.json      настройка версии, changelog и тега
+.release-please-manifest.json   последняя версия для release-please
+CHANGELOG.md                    история релизов, появится после первого релиза
 ```
 
 Остальное в репозитории:

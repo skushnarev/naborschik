@@ -1,4 +1,4 @@
-.PHONY: status docs-check core-check version-check typecheck test check build dev golden public bump hooks agents plugin-link help
+.PHONY: status docs-check core-check version-check typecheck test check build dev golden public hooks agents plugin-link help
 
 help: ## Показать цели
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -34,9 +34,6 @@ golden: ## Пересобрать golden-фикстуры из `src/`
 
 public: ## Собрать веб-конвертер в public/index.html (ARGS="папка")
 	node bin/build-public.mjs $(ARGS)
-
-bump: ## Поднять патч-версию плагина
-	node bin/bump-version.mjs
 
 hooks: ## Поставить pre-commit с make check
 	@if [ -f .git/hooks/pre-commit ] && ! grep -q "make check" .git/hooks/pre-commit; then \
