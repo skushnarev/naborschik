@@ -1,7 +1,8 @@
 ---
 id: REL-02
 title: "Перевести релиз на release-please"
-status: doing
+status: done
+resolution: fixed
 area: release
 kind: chore
 severity: P1
@@ -18,9 +19,9 @@ updated: 2026-11-27
 ## Что сделать
 
 - Добавить `release-please-config.json` и `.release-please-manifest.json`.
-- Настроить `release-type: node`, `versioning: always-bump-patch`, `include-v-in-tag: false`, `include-component-in-tag: false`, `include-v-in-release-name: false`. Без `always-bump-patch` коммиты `chore` не дают релиза.
+- Настроить `release-type: node`, `include-v-in-tag: false`, `include-component-in-tag: false`, `include-v-in-release-name: false`.
 - Подключить `manifest.json` через `extra-files` с jsonpath `$.version`.
-- Поставить в манифест старт `{".": "0.1.5"}` и `bootstrap-sha` на коммит тега `0.1.5`, чтобы первый changelog не захватил всю историю.
+- Поставить в манифест старт `{".": "0.1.5"}`, чтобы первый changelog начался с этой версии.
 - Переписать `.github/workflows/release.yml` на `push: main`: шаг `googleapis/release-please-action@v4`, затем по `release_created == 'true'` checkout, `npm ci`, `make check` и `gh release upload ... --clobber`. `make check` уже собирает `dist/`.
 - Выдать job права `contents: write`, `pull-requests: write` и `issues: write`.
 - Удалить запуск по тегу. События от `GITHUB_TOKEN` не запускают другие workflow, поэтому сборка и загрузка идут в том же workflow, без PAT.
@@ -51,7 +52,7 @@ updated: 2026-11-27
 
 - Максимум release-please: версия, changelog, тег и релиз у него. Свои скрипты бампа убираем.
 - Тег без `v`: `include-v-in-tag: false` и `include-component-in-tag: false`.
-- `versioning: always-bump-patch`, потому что задачи идут как `chore`, а правило репозитория требует патч.
+- Обычный semver: `feat` поднимает минор, `fix` патч, `chore`, `docs`, `test`, `build` и `ci` релиз не создают. `always-bump-patch` использовался только на первом релизе, чтобы получить `0.1.6`, и затем убран.
 - Сборка и загрузка в том же workflow, без PAT для артефактов.
 - Токен release-please: `secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN`. PAT нужен только чтобы release PR запускал CI.
 - `CHANGELOG.md` с русскими заголовками.
@@ -60,3 +61,13 @@ updated: 2026-11-27
 ## Заметки
 
 release-please публикует релиз до загрузки артефактов. Если окно без файлов мешает, включить `draft: true` и `force-tag-creation: true`, а публиковать после `gh release upload`.
+
+## Итог
+
+- `release-please-config.json` и `.release-please-manifest.json` добавлены. `release-type: node`, тег без `v` и без компонента, `manifest.json` обновляется через `extra-files`. Русские заголовки changelog заданы в `changelog-sections`.
+- `.github/workflows/release.yml` запускается по push в `main`. Job `release-please` создаёт или обновляет release PR, job `artifacts` по `release_created` собирает `dist/`, гоняет `make check`, сверяет версию с тегом и прикладывает `main.js` и `manifest.json` через `gh release upload --clobber`.
+- `make bump` и `bin/bump-version.mjs` удалены. `make version-check` остался защитой и входит в `make check`.
+- Первый release PR #2 поднял версию до `0.1.6` в трёх файлах и создал `CHANGELOG.md`. PR смержен, workflow `46032426408` зелёный, релиз `0.1.6` опубликован: https://github.com/skushnarev/naborschik/releases/tag/0.1.6. Тег без префикса `v`, артефакты `main.js` и `manifest.json` на месте.
+- `always-bump-patch` и `bootstrap-sha` убраны после первого релиза: дальше работает обычный semver. `feat` поднимает минор, `fix` патч, служебные типы релиз не создают.
+- Release PR, созданный `GITHUB_TOKEN`, не запускает CI. В настройках репозитория включён пункт Allow GitHub Actions to create and approve pull requests, поэтому PR создаётся. Для проверок на release PR нужен `RELEASE_PLEASE_TOKEN`; без него версия проверяется локально через `make version-check`.
+- `docs-check`, `make check` и CI на `main` зелёные. Повторный запуск workflow на уже существующем релизе не падает.

@@ -15,11 +15,13 @@ make plugin-link VAULT=/путь/к/хранилищу
 
 ## Релиз
 
-Версию, `CHANGELOG.md`, тег и GitHub Release ведёт release-please. Он собирает изменения из Conventional Commits, открывает release PR с новой версией в `package.json`, `package-lock.json` и `manifest.json`, а после merge ставит тег без префикса `v` и создаёт релиз. `make version-check` сверяет версию в трёх файлах, а с `ARGS="0.1.5"` ещё и с тегом. Проверка входит в `make check`.
+Версию, `CHANGELOG.md`, тег и GitHub Release ведёт release-please. Он собирает изменения из Conventional Commits, открывает release PR с новой версией в `package.json`, `package-lock.json` и `manifest.json`, а после merge ставит тег без префикса `v` и создаёт релиз. `make version-check` сверяет версию в трёх файлах, а с `ARGS="0.1.6"` ещё и с тегом. Проверка входит в `make check`.
 
 Ручной бамп больше не нужен: версия меняется только в release PR. Настройка лежит в `release-please-config.json` и `.release-please-manifest.json`. После релиза workflow `.github/workflows/release.yml` собирает `dist/`, прогоняет `make check` и прикладывает к релизу `main.js` и `manifest.json`, а `styles.css`, если он есть в сборке. `dist/` не коммитится.
 
-Чтобы release PR запускал проверки, добавьте личный токен GitHub с точечными правами `contents: write`, `pull-requests: write` и `issues: write` в секрет `RELEASE_PLEASE_TOKEN`. Без него workflow работает на `GITHUB_TOKEN`, но PR, созданный этим токеном, не запускает другие workflow.
+Релиз появляется на `feat` и `fix`: `feat` поднимает минор, `fix` патч. `chore`, `docs`, `test`, `build` и `ci` в changelog не попадают и релиз не создают.
+
+Чтобы release PR запускал проверки, добавьте личный токен GitHub с точечными правами `contents: write`, `pull-requests: write` и `issues: write` в секрет `RELEASE_PLEASE_TOKEN`. Без него workflow работает на `GITHUB_TOKEN`, но PR, созданный этим токеном, не запускает другие workflow. Если PAT нет, включите в Settings → Actions → General пункт Allow GitHub Actions to create and approve pull requests: release PR будет создаваться, но без проверок.
 
 Проверочный workflow `.github/workflows/ci.yml` гоняет `npm ci` и `make check` на push в `main` и на pull request. Если Actions в репозитории выключены, включите их в Settings → Actions → General. Права по умолчанию можно оставить read-only: релизные job сами просят нужные права. Репозиторий должен быть публичным, иначе релиз не скачать без авторизации. Тег создаёт release-please, вручную его пушить не нужно.
 
@@ -109,7 +111,7 @@ dist/                     main.js, manifest.json и styles.css, если он е
 manifest.json             источник, копируется в dist
 release-please-config.json      настройка версии, changelog и тега
 .release-please-manifest.json   последняя версия для release-please
-CHANGELOG.md                    история релизов, появится после первого релиза
+CHANGELOG.md                    история релизов, ведёт release-please
 ```
 
 Остальное в репозитории:

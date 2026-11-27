@@ -12,7 +12,7 @@ docs-check: ## Проверить задачи и запретить чекли�
 core-check: ## Проверить, что ядро, адаптеры и веб-конвертер не импортируют obsidian
 	node bin/core-check.mjs
 
-version-check: ## Сверить версию в package.json, package-lock.json и manifest.json (ARGS="0.1.5")
+version-check: ## Сверить версию в package.json, package-lock.json и manifest.json (ARGS="0.1.6")
 	node bin/check-version.mjs $(ARGS)
 
 typecheck: ## Проверить типы TypeScript
