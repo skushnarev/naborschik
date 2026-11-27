@@ -20,7 +20,7 @@ const pkg = readJson("package.json");
 const lock = readJson("package-lock.json");
 const manifest = readJson("manifest.json");
 
-const versions = [
+const sources = [
 	["package.json", pkg.version],
 	["package-lock.json", lock.version],
 	['package-lock.json packages[""].version', lock.packages?.[""]?.version],
@@ -28,25 +28,28 @@ const versions = [
 ];
 
 const errors = [];
+const declared = [];
 
-for (const [name, version] of versions) {
+for (const [name, version] of sources) {
 	if (typeof version !== "string" || !semver.test(version)) {
 		errors.push(`${name}: ожидается версия вида 0.1.5, получено ${JSON.stringify(version)}`);
+		continue;
 	}
+	declared.push(version);
 }
 
-const unique = [...new Set(versions.map(([, version]) => version))];
+const agreed = declared.length === sources.length && new Set(declared).size === 1;
 
-if (unique.length > 1) {
-	const found = versions.map(([name, version]) => `${name} ${JSON.stringify(version)}`).join(", ");
+if (declared.length === sources.length && !agreed) {
+	const found = sources.map(([name, version]) => `${name} ${JSON.stringify(version)}`).join(", ");
 	errors.push(`Версии расходятся: ${found}`);
 }
 
 if (tag !== undefined) {
 	if (!semver.test(tag)) {
 		errors.push(`Тег ${JSON.stringify(tag)} не похож на 0.1.5: префикс v и суффиксы не поддерживаются`);
-	} else if (tag !== manifest.version) {
-		errors.push(`Тег ${tag} не совпадает с версией плагина ${manifest.version}`);
+	} else if (agreed && tag !== declared[0]) {
+		errors.push(`Тег ${tag} не совпадает с версией плагина ${declared[0]}`);
 	}
 }
 
@@ -55,4 +58,4 @@ if (errors.length > 0) {
 	process.exit(1);
 }
 
-console.log(tag === undefined ? `Версия согласована: ${unique[0]}` : `Версия и тег согласованы: ${unique[0]}`);
+console.log(tag === undefined ? `Версия согласована: ${declared[0]}` : `Версия и тег согласованы: ${declared[0]}`);
