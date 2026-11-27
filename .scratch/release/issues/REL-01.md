@@ -1,7 +1,8 @@
 ---
 id: REL-01
 title: "Релизный workflow GitHub Actions и артефакты"
-status: doing
+status: done
+resolution: fixed
 area: release
 kind: chore
 severity: P1
@@ -51,3 +52,13 @@ updated: 2026-11-27
 - CI на Node 26 и `ubuntu-latest`, официальные actions по major-тегу, релиз через `gh`.
 - `LICENSE` отложен до `REL-03`.
 - `REL-01` проверяется в ветке и PR, затем merge в `main`.
+
+## Итог
+
+- `.github/workflows/ci.yml` гоняет `npm ci` и `make check` на push в `main` и на pull request. PR #1 и push в `main` зелёные.
+- `.github/workflows/release.yml` запускается по тегу без префикса `v`, проверяет, что тег указывает на коммит из `main`, гоняет `make check`, сверяет версию с тегом и создаёт GitHub Release. `main.js` и `manifest.json` прикладываются всегда, `styles.css` только если появится в `dist/`.
+- `bin/check-version.mjs` и `make version-check` сверяют `package.json`, `package-lock.json` и `manifest.json`, с аргументом ещё и тег. Проверка входит в `make check`, тест `test/version.test.ts` покрывает расхождение версий, чужой тег и префикс `v`.
+- Тег `0.1.99` уронил релизный workflow на сверке версии и удалён. Релиз `0.1.5` опубликован: https://github.com/skushnarev/naborschik/releases/tag/0.1.5. `main.js` и `manifest.json` совпадают с локальной сборкой по sha256.
+- `dist/` не коммитится, версия осталась `0.1.5`: сборка плагина не менялась.
+- Используется только `GITHUB_TOKEN` с `contents: write` в релизном job. Права по умолчанию в репозитории остаются read-only, право записи для всего репозитория не нужно.
+- README описывает процесс релиза и настройки, глоссарий получил термины «версия плагина», «тег релиза», «релиз» и «артефакт релиза».
