@@ -1,4 +1,4 @@
-.PHONY: status docs-check core-check typecheck test test-proto check build dev golden bump hooks agents prototype prototype-serve plugin-link help
+.PHONY: status docs-check core-check typecheck test test-proto check build dev golden public bump hooks agents prototype prototype-serve plugin-link help
 
 help: ## Показать цели
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -9,13 +9,13 @@ status: ## Задачи: открытые (ARGS="VC-01..VC-05")
 docs-check: ## Проверить задачи и запретить чеклисты в доках
 	node bin/docs-check.mjs
 
-core-check: ## Проверить, что ядро не импортирует obsidian
+core-check: ## Проверить, что ядро, адаптеры и веб-конвертер не импортируют obsidian
 	node bin/core-check.mjs
 
 typecheck: ## Проверить типы TypeScript
 	./node_modules/.bin/tsc --noEmit
 
-test: ## Node-тесты плагина
+test: ## Node-тесты плагина и веб-сборки
 	node --test test/*.test.ts
 
 test-proto: ## Node-тесты прототипа
@@ -31,6 +31,9 @@ check: docs-check core-check typecheck test test-proto build ## Все пров�
 
 golden: ## Пересобрать golden-фикстуру из прототипа
 	node bin/make-golden.mjs
+
+public: ## Собрать веб-конвертер в public/index.html (ARGS="папка")
+	node bin/build-public.mjs $(ARGS)
 
 bump: ## Поднять патч-версию плагина
 	node bin/bump-version.mjs

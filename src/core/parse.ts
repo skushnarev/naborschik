@@ -120,15 +120,27 @@ export function parse(markdown: string, options: ParseOptions = {}): Document {
 	return { blocks, warnings: state.warnings };
 }
 
+/**
+ * Есть ли в начале документа frontmatter, который вырежет `parse`.
+ * Нужен обвязке для подсказки, чтобы правило жило в одном месте.
+ */
+export function hasFrontmatter(markdown: string): boolean {
+	const source = String(markdown).replace(/\r\n?/g, "\n");
+	return frontmatterMatch(source) !== null;
+}
+
+// Frontmatter вырезается только в начале документа и только если внутри
+// есть хотя бы один ключ. Иначе первый --- это обычный разделитель.
+function frontmatterMatch(source: string): RegExpMatchArray | null {
+	const frontmatter = source.match(/^\uFEFF?---\n([\s\S]*?)\n---[ \t]*(?:\n|$)/);
+	return frontmatter && /^[\w-]+\s*:/m.test(frontmatter[1] ?? "") ? frontmatter : null;
+}
+
 function preprocess(markdown: string, state: ParseState): string {
 	let source = String(markdown).replace(/\r\n?/g, "\n");
 
-	// Frontmatter вырезается только в начале документа и только если внутри
-	// есть хотя бы один ключ. Иначе первый --- это обычный разделитель.
-	const frontmatter = source.match(/^\uFEFF?---\n([\s\S]*?)\n---[ \t]*(?:\n|$)/);
-	if (frontmatter && /^[\w-]+\s*:/m.test(frontmatter[1] ?? "")) {
-		source = source.slice(frontmatter[0].length);
-	}
+	const frontmatter = frontmatterMatch(source);
+	if (frontmatter) source = source.slice(frontmatter[0].length);
 
 	// Код защищаем от предобработки: внутри него синтаксис Obsidian это текст.
 	const code = protectCode(source);

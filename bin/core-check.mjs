@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
-const ROOTS = ["src/core", "src/platforms"];
+const ROOTS = ["src/core", "src/platforms", "web"];
 const FORBIDDEN = /(?:from\s*|import\s*\(\s*|import\s+|require\(\s*)["']obsidian["']/;
 const EXTENSIONS = [".ts", ".mts", ".js", ".mjs"];
 
@@ -41,9 +41,9 @@ for (const root of ROOTS) {
 }
 
 if (failures.length) {
-	console.error("Ядро импортирует obsidian:");
+	console.error("Конвертер импортирует obsidian:");
 	for (const file of failures) console.error("  " + file);
 	process.exit(1);
 }
 
-console.log("Ядро чистое: obsidian не импортируется.");
+console.log("Конвертер чистый: obsidian не импортируется.");

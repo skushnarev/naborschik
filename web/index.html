@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>naborschik: конвертер Markdown</title>
+<link rel="icon" href="data:,">
+<style>
+/*__STYLES__*/
+</style>
+</head>
+<body>
+<div class="page">
+	<header class="top">
+		<div>
+			<div class="eyebrow">веб-версия, не плагин</div>
+			<h1>naborschik</h1>
+			<p class="lede">
+				Один Markdown на три площадки: payload для vc.ru и HTML для Дзена и Смартлаба.
+				Вставь статью, выбери площадку и скопируй выход. Заголовок статьи в буфер не входит.
+			</p>
+		</div>
+		<div class="top-actions">
+			<label class="file-button">Открыть .md<input id="file" type="file" accept=".md,.markdown,text/markdown,text/plain"></label>
+			<button id="load-sample" type="button">Пример</button>
+			<button id="clear" type="button">Очистить</button>
+		</div>
+	</header>
+
+	<main class="grid">
+		<section class="card">
+			<div class="card-head">
+				<h2>Markdown из Obsidian</h2>
+				<span class="pill">Cmd/Ctrl + Enter копирует</span>
+			</div>
+			<textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Выдели статью в Obsidian и вставь сюда..."></textarea>
+			<div id="stats" class="stats"></div>
+			<div id="notice" class="notice" hidden></div>
+		</section>
+
+		<section class="card">
+			<div class="card-head">
+				<nav id="platforms" class="platforms" aria-label="Площадка"></nav>
+				<nav class="tabs" role="tablist" aria-label="Представление результата">
+					<button type="button" role="tab" data-tab="blocks" class="active" aria-selected="true">Блоки <span id="count-badge" class="tab-count">0</span></button>
+					<button type="button" role="tab" data-tab="payload" aria-selected="false">Payload</button>
+				</nav>
+				<button id="copy" type="button" class="primary" disabled>Скопировать</button>
+			</div>
+			<div class="panels">
+				<div id="panel-blocks" class="panel active" role="tabpanel"></div>
+				<div id="panel-payload" class="panel" role="tabpanel"><pre id="payload"></pre></div>
+			</div>
+		</section>
+	</main>
+
+	<p id="hint" class="hint"></p>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+/*__SCRIPT__*/
+</script>
+</body>
+</html>

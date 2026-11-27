@@ -1,0 +1,536 @@
+import { hasFrontmatter } from "../src/core/parse.ts";
+import { PLATFORMS } from "../src/platforms/index.ts";
+import type { Block, PlatformAdapter, Warning } from "../src/core/types.ts";
+import { convertMarkdown, type Conversion, type PlatformOutput } from "./convert.ts";
+
+type Tab = "blocks" | "payload";
+
+type State = {
+	conversion: Conversion | null;
+	platform: string;
+	tab: Tab;
+	error: string;
+};
+
+const SAMPLE = [
+	"---",
+	"title: Пример статьи",
+	"---",
+	"",
+	"# Заголовок статьи в буфер не входит",
+	"",
+	"Вступление с **жирным**, *курсивом*, `кодом` и [ссылкой](https://ya.ru). Символы & < > остаются текстом.",
+	"",
+	"## Глава 1",
+	"",
+	"> [!note] Важно",
+	"> Callout станет цитатой, маркер уберётся, заголовок останется жирным.",
+	"",
+	"- Первый пункт",
+	"- Второй пункт",
+	"  - Вложенный пункт",
+	"- [x] Готово",
+	"- [ ] Не готово",
+	"",
+	"1. Первый",
+	"2. Второй",
+	"",
+	"> Обычная цитата.",
+	"",
+	"---",
+	"",
+	"### Раздел",
+	"",
+	"| Колонка | Значение |",
+	"|---|---|",
+	"| A | 1 |",
+	"| B | 2 |",
+	"",
+	"~~~js",
+	"const x = 1;",
+	"console.log(x);",
+	"~~~",
+	"",
+	"Ссылка на [[Папку/Заметку|алиас]] и картинка ![[star.png|64]]."
+].join("\n");
+
+function byId<T extends HTMLElement>(id: string): T {
+	const element = document.getElementById(id);
+	if (!element) throw new Error("Нет элемента #" + id);
+	return element as T;
+}
+
+const input = byId<HTMLTextAreaElement>("input");
+const statsEl = byId<HTMLElement>("stats");
+const noticeEl = byId<HTMLElement>("notice");
+const blocksPanel = byId<HTMLElement>("panel-blocks");
+const payloadPanel = byId<HTMLElement>("panel-payload");
+const payloadEl = byId<HTMLElement>("payload");
+const countBadge = byId<HTMLElement>("count-badge");
+const platformsNav = byId<HTMLElement>("platforms");
+const copyButton = byId<HTMLButtonElement>("copy");
+const fileInput = byId<HTMLInputElement>("file");
+const hintEl = byId<HTMLElement>("hint");
+const toastEl = byId<HTMLElement>("toast");
+
+const state: State = {
+	conversion: null,
+	platform: PLATFORMS[0]?.id ?? "",
+	tab: "blocks",
+	error: ""
+};
+
+let generation = 0;
+let toastTimer = 0;
+
+for (const adapter of PLATFORMS) {
+	const button = document.createElement("button");
+	button.type = "button";
+	button.dataset.platform = adapter.id;
+	button.textContent = adapter.title;
+	button.addEventListener("click", () => {
+		state.platform = adapter.id;
+		render();
+	});
+	platformsNav.appendChild(button);
+}
+
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-tab]")) {
+	button.addEventListener("click", () => {
+		const tab = button.dataset.tab;
+		if (tab === "blocks" || tab === "payload") setTab(tab);
+	});
+}
+
+async function convert(): Promise<void> {
+	const current = ++generation;
+
+	try {
+		const conversion = await convertMarkdown(input.value);
+		if (current !== generation) return;
+		state.conversion = conversion;
+		state.error = "";
+	} catch (error) {
+		if (current !== generation) return;
+		state.conversion = null;
+		state.error = error instanceof Error ? error.message : String(error);
+	}
+
+	if (current !== generation) return;
+	render();
+}
+
+function selectedAdapter(): PlatformAdapter | null {
+	return PLATFORMS.find((adapter) => adapter.id === state.platform) ?? null;
+}
+
+function selectedOutput(): PlatformOutput | null {
+	return state.conversion?.outputs[state.platform] ?? null;
+}
+
+function selectedText(): string {
+	const payload = selectedOutput()?.payload;
+	return payload ? payload.html ?? payload.plain : "";
+}
+
+function render(): void {
+	const blocks = state.conversion?.blocks ?? [];
+	const output = selectedOutput();
+	const adapter = selectedAdapter();
+	const text = selectedText();
+	const warnings = output?.warnings ?? [];
+
+	countBadge.textContent = String(blocks.length);
+	payloadEl.textContent = text;
+	copyButton.disabled = !text;
+	copyButton.textContent = copyLabel(adapter);
+
+	renderStats(blocks, text, adapter, warnings.length);
+	renderNotice(blocks, text, adapter, warnings);
+	renderPlatforms();
+	renderBlocks(blocks);
+	setTab(state.tab);
+	hintEl.textContent = hintFor(adapter);
+}
+
+function renderStats(
+	blocks: Block[],
+	text: string,
+	adapter: PlatformAdapter | null,
+	warningCount: number
+): void {
+	statsEl.innerHTML = "";
+	statsEl.appendChild(pill(blocks.length + " блоков"));
+	statsEl.appendChild(pill(text.length + " символов"));
+
+	if (adapter?.id === "vcru" && blocks.length > 0) {
+		const mode = blocks.length === 1 ? "plain: один блок" : "tool: много блоков";
+		statsEl.appendChild(pill(mode, blocks.length === 1 ? "warn" : "ok"));
+	} else if (adapter) {
+		statsEl.appendChild(pill("HTML: " + adapter.title, "ok"));
+	}
+
+	if (hasFrontmatter(input.value)) statsEl.appendChild(pill("frontmatter вырезан"));
+	if (warningCount > 0) statsEl.appendChild(pill("предупреждений: " + warningCount, "warn"));
+	if (state.error) statsEl.appendChild(pill("ошибка", "fail"));
+}
+
+function renderNotice(
+	blocks: Block[],
+	text: string,
+	adapter: PlatformAdapter | null,
+	warnings: Warning[]
+): void {
+	const messages: string[] = [];
+
+	if (state.error) messages.push("Ошибка конвертера: " + state.error);
+	if (blocks.length === 0) {
+		messages.push("Блоков нет. Проверь, что вставился Markdown, а не пустой текст.");
+	}
+	if (hasFrontmatter(input.value)) {
+		messages.push("Frontmatter в начале вырезан: в статью он не попадает.");
+	}
+	if (adapter?.id === "vcru" && blocks.length === 1) {
+		messages.push(
+			"Один блок уйдёт обычным текстом. vc.ru не создаёт нативный блок из одиночной строки [tool:...]."
+		);
+	}
+	for (const warning of warnings) messages.push(warning.message);
+	if (text.includes("[[")) {
+		messages.push("В выходе остались Obsidian-ссылки или картинки. Найди их поиском по [[ и замени руками.");
+	}
+	if (adapter && adapter.id !== "vcru" && text.includes("<img")) {
+		messages.push("В выходе есть img. Проверь, не вырезал ли картинку редактор площадки.");
+	}
+
+	const unique = [...new Set(messages)];
+	noticeEl.hidden = unique.length === 0;
+	noticeEl.textContent = unique.join(" ");
+}
+
+function renderPlatforms(): void {
+	for (const button of document.querySelectorAll<HTMLButtonElement>("[data-platform]")) {
+		const active = button.dataset.platform === state.platform;
+		button.classList.toggle("active", active);
+		button.setAttribute("aria-pressed", String(active));
+	}
+}
+
+function renderBlocks(blocks: Block[]): void {
+	blocksPanel.innerHTML = "";
+
+	if (blocks.length === 0) {
+		const empty = document.createElement("div");
+		empty.className = "empty";
+		empty.textContent = "Пока пусто. Вставь Markdown слева или нажми «Пример».";
+		blocksPanel.appendChild(empty);
+		return;
+	}
+
+	blocks.forEach((block, index) => {
+		const card = document.createElement("article");
+		card.className = "block-card";
+
+		const head = document.createElement("div");
+		head.className = "block-head";
+
+		const badge = document.createElement("span");
+		badge.className = "badge badge-" + block.type;
+		badge.textContent = labelFor(block);
+		head.appendChild(badge);
+
+		const number = document.createElement("span");
+		number.className = "block-number";
+		number.textContent = "#" + (index + 1);
+		head.appendChild(number);
+
+		card.appendChild(head);
+
+		const body = document.createElement("div");
+		body.className = "block-body";
+		fillPreview(body, block);
+		card.appendChild(body);
+
+		blocksPanel.appendChild(card);
+	});
+}
+
+function fillPreview(container: HTMLElement, block: Block): void {
+	switch (block.type) {
+		case "header": {
+			const heading = document.createElement(block.level === 3 ? "h3" : "h2");
+			heading.textContent = block.text;
+			container.appendChild(heading);
+			return;
+		}
+		case "text":
+			container.innerHTML = block.html;
+			return;
+		case "list": {
+			const list = document.createElement(block.ordered ? "ol" : "ul");
+			for (const item of block.items) {
+				const li = document.createElement("li");
+				li.innerHTML = item.html;
+				list.appendChild(li);
+			}
+			container.appendChild(list);
+			return;
+		}
+		case "quote": {
+			const quote = document.createElement("blockquote");
+			quote.innerHTML = block.html;
+			container.appendChild(quote);
+			return;
+		}
+		case "code": {
+			const pre = document.createElement("pre");
+			pre.className = "code-preview";
+			const code = document.createElement("code");
+			code.textContent = block.text;
+			pre.appendChild(code);
+			container.appendChild(pre);
+			return;
+		}
+		case "table": {
+			const table = document.createElement("table");
+			const thead = document.createElement("thead");
+			const headRow = document.createElement("tr");
+
+			block.headers.forEach((header, index) => {
+				const th = document.createElement("th");
+				th.innerHTML = header;
+				const align = block.align[index] ?? null;
+				if (align) th.style.textAlign = align;
+				headRow.appendChild(th);
+			});
+
+			thead.appendChild(headRow);
+			table.appendChild(thead);
+
+			if (block.rows.length > 0) {
+				const tbody = document.createElement("tbody");
+				for (const row of block.rows) {
+					const tr = document.createElement("tr");
+					row.forEach((cell, index) => {
+						const td = document.createElement("td");
+						td.innerHTML = cell;
+						const align = block.align[index] ?? null;
+						if (align) td.style.textAlign = align;
+						tr.appendChild(td);
+					});
+					tbody.appendChild(tr);
+				}
+				table.appendChild(tbody);
+			}
+
+			container.appendChild(table);
+			return;
+		}
+		case "image": {
+			const placeholder = document.createElement("div");
+			placeholder.className = "image-placeholder";
+			placeholder.textContent = "Картинка" + (block.alt ? ": " + block.alt : "");
+			container.appendChild(placeholder);
+			return;
+		}
+		case "delimiter":
+			container.appendChild(document.createElement("hr"));
+			return;
+	}
+}
+
+function labelFor(block: Block): string {
+	switch (block.type) {
+		case "header":
+			return "header h" + block.level;
+		case "text":
+			return "text";
+		case "list":
+			return "list " + (block.ordered ? "ol" : "ul");
+		case "quote":
+			return "quote";
+		case "code":
+			return block.lang ? "code " + block.lang : "code";
+		case "table":
+			return "table";
+		case "image":
+			return "image";
+		case "delimiter":
+			return "delimiter";
+	}
+}
+
+function setTab(tab: Tab): void {
+	state.tab = tab;
+
+	for (const button of document.querySelectorAll<HTMLButtonElement>("[data-tab]")) {
+		const active = button.dataset.tab === tab;
+		button.classList.toggle("active", active);
+		button.setAttribute("aria-selected", String(active));
+	}
+
+	blocksPanel.classList.toggle("active", tab === "blocks");
+	payloadPanel.classList.toggle("active", tab === "payload");
+}
+
+function pill(text: string, tone?: "ok" | "warn" | "fail"): HTMLSpanElement {
+	const span = document.createElement("span");
+	span.className = "pill" + (tone ? " pill-" + tone : "");
+	span.textContent = text;
+	return span;
+}
+
+function copyLabel(adapter: PlatformAdapter | null): string {
+	return adapter ? "Скопировать для " + adapter.forWhom : "Скопировать";
+}
+
+function hintFor(adapter: PlatformAdapter | null): string {
+	if (adapter?.id === "dzen") {
+		return "В Дзене вставь HTML в визуальный редактор. Код станет цитатой, таблица списком, разделитель текстом. Проверь блоки в черновике.";
+	}
+	if (adapter?.id === "smartlab") {
+		return "В Смартлабе вставь HTML в визуальный редактор. Код уходит как pre, таблица таблицей. Проверь блоки в черновике.";
+	}
+	if (adapter?.id === "vcru") {
+		return "В черновике vc.ru поставь курсор в пустой текстовый блок и вставь. Один блок уходит обычным текстом. Картинки остаются строками ![[...]] и меняются руками.";
+	}
+	return "";
+}
+
+async function copyOutput(): Promise<void> {
+	const payload = selectedOutput()?.payload;
+	if (!payload) {
+		toast("Нечего копировать");
+		return;
+	}
+
+	const adapter = selectedAdapter();
+	const html = payload.html;
+	const richRequested = Boolean(html && adapter?.id !== "vcru");
+	const result = richRequested && html ? await copyHtml(html, payload.plain) : await copyText(payload.plain);
+
+	if (!result) {
+		setTab("payload");
+		toast("Не удалось скопировать автоматически. Текст открыт во вкладке Payload.");
+		return;
+	}
+
+	copyButton.textContent = "Скопировано";
+	if (result === "rich") {
+		toast("В буфере HTML для " + (adapter?.title ?? "площадки") + ". Вставь в визуальный редактор и проверь блоки.");
+	} else if (richRequested) {
+		toast("Rich-вставка недоступна, в буфере читаемый текст без тегов.");
+	} else {
+		toast("В буфере " + payload.plain.length + " символов. Вставь в нужное поле площадки.");
+	}
+
+	window.setTimeout(() => {
+		copyButton.textContent = copyLabel(selectedAdapter());
+	}, 1600);
+}
+
+async function copyText(text: string): Promise<"plain" | false> {
+	try {
+		if (navigator.clipboard?.writeText) {
+			await navigator.clipboard.writeText(text);
+			return "plain";
+		}
+	} catch {
+		// Ниже запасной путь через execCommand.
+	}
+
+	return fallbackCopy(text) ? "plain" : false;
+}
+
+async function copyHtml(html: string, plain: string): Promise<"rich" | "plain" | false> {
+	if (navigator.clipboard?.write && typeof ClipboardItem !== "undefined") {
+		try {
+			const item = new ClipboardItem({
+				"text/html": new Blob([html], { type: "text/html" }),
+				"text/plain": new Blob([plain], { type: "text/plain" })
+			});
+			await navigator.clipboard.write([item]);
+			return "rich";
+		} catch {
+			// Ниже пробуем текстовый буфер.
+		}
+	}
+
+	return copyText(plain);
+}
+
+function fallbackCopy(text: string): boolean {
+	const area = document.createElement("textarea");
+	area.value = text;
+	area.setAttribute("readonly", "");
+	area.style.position = "fixed";
+	area.style.top = "-1000px";
+	document.body.appendChild(area);
+	area.select();
+
+	let ok = false;
+	try {
+		ok = document.execCommand("copy");
+	} catch {
+		ok = false;
+	}
+
+	document.body.removeChild(area);
+	return ok;
+}
+
+function toast(message: string): void {
+	toastEl.textContent = message;
+	toastEl.classList.add("visible");
+	if (toastTimer) window.clearTimeout(toastTimer);
+	toastTimer = window.setTimeout(() => {
+		toastEl.classList.remove("visible");
+	}, 3200);
+}
+
+input.addEventListener("input", () => {
+	void convert();
+});
+
+copyButton.addEventListener("click", () => {
+	void copyOutput();
+});
+
+document.addEventListener("keydown", (event) => {
+	if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+		event.preventDefault();
+		void copyOutput();
+	}
+});
+
+byId<HTMLButtonElement>("load-sample").addEventListener("click", () => {
+	input.value = SAMPLE;
+	void convert();
+});
+
+byId<HTMLButtonElement>("clear").addEventListener("click", () => {
+	input.value = "";
+	void convert();
+	input.focus();
+});
+
+fileInput.addEventListener("change", () => {
+	const file = fileInput.files?.[0];
+	if (!file) return;
+
+	file
+		.text()
+		.then((text) => {
+			input.value = text;
+			fileInput.value = "";
+			void convert();
+			toast("Загружено: " + file.name);
+		})
+		.catch(() => {
+			toast("Не удалось прочитать файл");
+		});
+});
+
+input.value = SAMPLE;
+setTab("blocks");
+void convert();
