@@ -26,7 +26,7 @@ git push origin 0.1.5
 
 Workflow `.github/workflows/release.yml` собирает `dist/`, прогоняет `make check`, проверяет, что тег указывает на коммит из `main`, и создаёт GitHub Release с `main.js` и `manifest.json`. Если в сборке появится `styles.css`, он прикладывается тем же шагом. `dist/` по-прежнему не коммитится. Тег с версией, отличной от манифеста, роняет workflow.
 
-Проверочный workflow `.github/workflows/ci.yml` гоняет `npm ci` и `make check` на push в `main` и на pull request. Если Actions в репозитории выключены, включите их в Settings → Actions → General. Права по умолчанию можно оставить read-only: релизный job сам просит `contents: write`. Право записи для всего репозитория и личные токены не нужны, используется только `GITHUB_TOKEN`.
+Проверочный workflow `.github/workflows/ci.yml` гоняет `npm ci` и `make check` на push в `main` и на pull request. Если Actions в репозитории выключены, включите их в Settings → Actions → General. Права по умолчанию можно оставить read-only: релизный job сам просит `contents: write`. Право записи для всего репозитория и личные токены не нужны, используется только `GITHUB_TOKEN`. Репозиторий должен быть публичным, иначе релиз не скачать без авторизации. Тег может запушить любой, у кого есть право записи: отдельной защиты тегов нет.
 
 Установка из релиза и через BRAT это REL-03.
 
@@ -110,7 +110,7 @@ web/
   sample.ts               встроенная star.png для режима примера
 test/
   fixtures/               входные статьи и golden-выходы
-dist/                     main.js и manifest.json, в .gitignore
+dist/                     main.js, manifest.json и styles.css, если он есть; в .gitignore
 manifest.json             источник, копируется в dist
 ```
 
@@ -118,7 +118,8 @@ manifest.json             источник, копируется в dist
 
 - `docs/` - процессы, решения и правило недокументированного API.
 - `.scratch/` - спеки и задачи эпиков.
-- `bin/` - проверки задач, документации, чистоты ядра, сборка golden и веб-конвертера.
+- `bin/` - проверки задач, документации, чистоты ядра, версии, сборка golden и веб-конвертера.
+- `.github/workflows/` - CI и релиз в GitHub Actions.
 - `.agents/` - скиллы и слэш-команды.
 
 ## Задачи
@@ -146,7 +147,7 @@ make check
 make hooks
 ```
 
-`make test` гоняет тесты плагина и веб-сборки. `make core-check` проверяет, что ядро, адаптеры и веб-конвертер не импортируют Obsidian. `make check` добавляет к ним типы, тесты и сборку плагина. `make hooks` ставит pre-commit с `make check`.
+`make test` гоняет тесты плагина и веб-сборки. `make core-check` проверяет, что ядро, адаптеры и веб-конвертер не импортируют Obsidian. `make version-check` сверяет версию в `package.json`, `package-lock.json` и `manifest.json`. `make check` собирает всё вместе: документацию, чистоту ядра, версию, типы, тесты и сборку. `make hooks` ставит pre-commit с `make check`.
 
 `docs-check` проверяет front matter, ссылки, циклы блокировок и запрещает чеклисты и статусные таблицы в нарративных документах. `make golden` пересобирает golden-фикстуры из `src/`: запускать после правки `article.md` или осознанного изменения выходов.
 

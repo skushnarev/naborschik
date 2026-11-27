@@ -38,8 +38,9 @@
 - `make status ARGS="--check"` - схема, ссылки, циклы блокировок.
 - `make docs-check` - задачи плюс запрет чеклистов и статусов в доках.
 - `make core-check` - ядро, адаптеры и веб-конвертер не импортируют `obsidian`.
+- `make version-check` - версия в `package.json`, `package-lock.json` и `manifest.json` совпадает; с `ARGS="0.1.5"` ещё и с тегом.
 - `make test` - Node-тесты плагина и веб-сборки.
-- `make check` - `docs-check`, проверка чистоты ядра, типы, тесты плагина и веб-сборки, сборка.
+- `make check` - `docs-check`, проверка чистоты ядра, сверка версии, типы, тесты плагина и веб-сборки, сборка.
 - `make golden` - пересобрать golden-фикстуры из `src/`.
 - `make public` - собрать веб-конвертер в `public/index.html`.
 - `make plugin-link VAULT=/путь/к/хранилищу` - собрать плагин и поставить симлинк на `dist/` в хранилище.
@@ -65,6 +66,8 @@ Single-context: `GLOSSARY.md` и `docs/adr/`. См. `docs/agents/domain.md`.
 - `web/` - исходники веб-конвертера: HTML-шаблон, стили и TypeScript-вход.
 - `public/` - вывод `make public`, один самодостаточный `index.html`.
 - `test/` - Node-тесты ядра, адаптеров и веб-сборки, фикстуры и golden-выходы.
+- `bin/` - проверки задач, документации, чистоты ядра, версии и сборка golden и веб-конвертера.
+- `.github/workflows/` - CI и релиз в GitHub Actions.
 - `dist/` - сборка `main.js` и `manifest.json`, в `.gitignore`.
 - `.agents/skills/` - скиллы (Agent Skills), вендор `mattpocock/skills`.
 - `.agents/commands/` - слэш-команды, статические обёртки над скиллами.
