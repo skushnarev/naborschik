@@ -2,7 +2,27 @@
 
 Плагин для Obsidian: превращает Markdown статьи в блоки vc.ru и HTML-фрагменты для Дзена и Смартлаба. Выделение или заметка целиком разбираются один раз, выбранный адаптер площадки кладёт готовый выход в буфер.
 
-## Установка и сборка
+## Установка
+
+Плагин работает в десктопном Obsidian 1.5.0 и новее, живой прогон был на 1.15.0. Мобильной версии нет: в манифесте стоит `isDesktopOnly: true`. Картинки плагин не загружает на площадки, об этом ниже.
+
+### Из релиза
+
+1. Откройте [последний релиз](https://github.com/skushnarev/naborschik/releases/latest).
+2. Скачайте `main.js` и `manifest.json`.
+3. Положите оба файла в `<хранилище>/.obsidian/plugins/naborschik`. Папку создайте, если её нет.
+4. В Obsidian откройте Settings, затем Community plugins, выключите Restricted mode и включите `Naborschik`.
+
+### Через BRAT
+
+1. Установите [BRAT](https://github.com/TfTHacker/obsidian42-brat) из каталога Community plugins и включите его.
+2. В command palette выполните `BRAT: Add a beta plugin for testing`.
+3. Вставьте `https://github.com/skushnarev/naborschik` и выберите версию.
+4. Включите `Naborschik` в списке плагинов.
+
+BRAT скачивает те же `main.js` и `manifest.json` из GitHub Release и умеет обновлять плагин. В каталоге Community плагина пока нет: он готовится к подаче.
+
+### Из исходников
 
 ```bash
 npm install
@@ -25,7 +45,7 @@ make plugin-link VAULT=/путь/к/хранилищу
 
 Проверочный workflow `.github/workflows/ci.yml` гоняет `npm ci` и `make check` на push в `main` и на pull request. Если Actions в репозитории выключены, включите их в Settings → Actions → General. Права по умолчанию можно оставить read-only: релизные job сами просят нужные права. Репозиторий должен быть публичным, иначе релиз не скачать без авторизации. Тег создаёт release-please, вручную его пушить не нужно.
 
-Установка из релиза и через BRAT это REL-03.
+Установка из релиза и через BRAT описана в разделе «Установка». Заявка в каталог Community готовится по требованиям community.obsidian.md.
 
 ## Три выхода
 
@@ -109,6 +129,7 @@ test/
   fixtures/               входные статьи и golden-выходы
 dist/                     main.js, manifest.json и styles.css, если он есть; в .gitignore
 manifest.json             источник, копируется в dist
+LICENSE                   текст лицензии MIT
 release-please-config.json      настройка версии, changelog и тега
 .release-please-manifest.json   последняя версия для release-please
 CHANGELOG.md                    история релизов, ведёт release-please
@@ -160,3 +181,7 @@ make agents
 ```
 
 Источник и порядок обновления: `docs/skills/ADOPTION.md`.
+
+## Лицензия
+
+MIT. Полный текст в `LICENSE`.
